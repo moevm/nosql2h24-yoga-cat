@@ -1,0 +1,52 @@
+{
+  "exercises": [
+    {
+      "id": 1,
+      "name": "Пример упражнения",
+      "photo": "base64string",
+      "description": "Описание упражнения",
+      "technique": "Описание техники",
+      "contraindications": ["Противопоказание 1", "Противопоказание 2"],
+      "benefits": ["Польза 1", "Польза 2"],
+      "spine": "Поясничный",
+      "position": "Лежа",
+      "load_focus": "Спина",
+      "periphery": "Руки",
+      "rating": 4.5,
+      "reviews": [
+        {
+          "id": 1,
+          "name": "Иван",
+          "age": 30,
+          "stars": 5,
+          "text": "Отличное упражнение",
+          "date": "2023-10-01"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Пример упражнения",
+      "photo": "base64string",
+      "description": "Описание упражнения",
+      "technique": "Описание техники",
+      "contraindications": ["Противопоказание 1", "Противопоказание 2"],
+      "benefits": ["Польза 1", "Польза 2"],
+      "spine": "Поясничный",
+      "position": "Лежа",
+      "load_focus": "Спина",
+      "periphery": "Руки",
+      "rating": 4.5,
+      "reviews": [
+        {
+          "id": 1,
+          "name": "Иван",
+          "age": 30,
+          "stars": 5,
+          "text": "Отличное упражнение",
+          "date": "2023-10-01"
+        }
+      ]
+    }
+  ]
+}
