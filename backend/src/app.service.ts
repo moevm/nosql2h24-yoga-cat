@@ -63,37 +63,34 @@ export class AppService implements OnModuleInit {
   async getFilteredExercises(filterParams: FilterParams): Promise<any[]> {
     try {
       const collection = this.db.collection('exercises');
-      const query: any = {};
+      const query: any[] = [];
 
-      const ensureArray = (value: any) => (Array.isArray(value) ? value : [value]);
+      console.log('filt', filterParams);
+
       if (filterParams.name && filterParams.name.length > 0) {
-        query['title'] = { $in: ensureArray(filterParams.name) };
+        query.push({ 'properties.title': { $in: [filterParams.name] } });
       }
-
-      console.log("aaaa", filterParams.spine);
       if (filterParams.spine && filterParams.spine.length > 0) {
-        query['properties.spine'] = { $in: ensureArray(filterParams.spine) };
+        query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine: [filterParams.spine] } });
       }
-
       if (filterParams.positionInSpace && filterParams.positionInSpace.length > 0) {
-        query['properties.positionInSpace'] = { $in: ensureArray(filterParams.positionInSpace) };
+        query.push({ 'properties.positionInSpace': { $in: Array.isArray(filterParams.positionInSpace) ? filterParams.positionInSpace : [filterParams.positionInSpace] } });
       }
-
-
       if (filterParams.loadAccent && filterParams.loadAccent.length > 0) {
-        query['properties.loadAccent'] = { $in: ensureArray(filterParams.loadAccent) };
+        query.push({ 'properties.loadAccent': { $in: Array.isArray(filterParams.loadAccent) ? filterParams.loadAccent : [filterParams.loadAccent]} });
       }
-
-
       if (filterParams.periphery && filterParams.periphery.length > 0) {
-        query['properties.periphery'] = { $in: ensureArray(filterParams.periphery) };
+        query.push({ 'properties.periphery': { $in: Array.isArray(filterParams.periphery) ? filterParams.periphery : [filterParams.periphery] } });
       }
-
       if (filterParams.stars && filterParams.stars.length > 0) {
-        query['properties.stars'] = { $in: ensureArray(filterParams.stars) };
+        query.push({ 'properties.stars': { $in: Array.isArray(filterParams.stars) ? filterParams.stars: [filterParams.stars] } });
       }
 
-      const exercises = await collection.find(query).toArray();
+      const finalQuery = {
+        $or: [...query]
+      };
+
+      const exercises = await collection.find(finalQuery.$or.length > 0 ? finalQuery : {}).toArray();
       console.log('Полученные упражнения:', exercises);
       return exercises;
     } catch (error) {
@@ -101,7 +98,6 @@ export class AppService implements OnModuleInit {
       return [];
     }
   }
-
 
 
   getHello(): string {
