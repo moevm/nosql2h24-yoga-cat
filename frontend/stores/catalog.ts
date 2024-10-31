@@ -1,15 +1,18 @@
 import { defineStore } from 'pinia';
-import type { Properties } from '~/types/exercise';
-
+import type { Exercise, Properties } from '~/types/exercise';
 type FiltersState = {
-  properties: Properties;
+  exercises: Exercise[]
+  properties: Properties & {title: string};
+  isLoading: boolean;
 }
 
 export const useFiltersStore = defineStore({
   id: 'filtersStore',
   state: (): FiltersState => ({
+    isLoading: false,
+    exercises: [],
     properties: {
-      name: '',
+      title: '',
       spine: [
         { key: 'DEFLECTION', value: false, title: 'Прогиб' },
         { key: 'INCLINE', value: false, title: 'Наклон' },
@@ -44,23 +47,19 @@ export const useFiltersStore = defineStore({
     },
   }),
   actions: {
-    applyFilters() {
-      const queryString = this.getQueryString();
-      console.log('q0', queryString);
-      const url = `http://localhost:8080/exercises?${queryString}`;
-      fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log(data);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+    async applyFilters() {
+      try {
+        const queryString = this.getQueryString();
+        const url = `http://localhost:8080/exercises?${queryString}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error status: ${response.status}`);
+        }
+        this.exercises = await response.json();
+        console.log(this.exercises);
+      } catch (error) {
+        console.error('Error:', error);
+      }
     },
     getQueryString() {
       const searchParams = new URLSearchParams();
@@ -71,11 +70,9 @@ export const useFiltersStore = defineStore({
         'periphery',
         'stars',
       ];
-
-      if (this.properties.name !== '') {
-        searchParams.append('name', this.properties.name);
+      if (this.properties.title !== '') {
+        searchParams.append('name', this.properties.title);
       }
-
       for (const filterCategory of filterKeys) {
         const filters = this.properties[filterCategory];
         if (filters) {

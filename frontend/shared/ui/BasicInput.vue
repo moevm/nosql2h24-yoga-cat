@@ -4,6 +4,7 @@ import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
 import type {Rule} from "~/types/types";
 
 type PropsType<T>= {
+  theme: string;
   placeholder: string;
   required?: boolean;
   disabled?: boolean;
@@ -11,6 +12,7 @@ type PropsType<T>= {
 };
 
 const props = withDefaults(defineProps<PropsType<string | number>>(), {
+  theme: 'basic',
   disabled: false,
   required: false,
   placeholder: '',
@@ -41,17 +43,17 @@ defineExpose({
 
 <template>
   <div class="wrap">
-    <div class="input-wrap" :class="{'error' : errorMessage.length>0}">
+    <div class="input-wrap" :class="{'error' : errorMessage.length>0,  [theme]: true,}">
       <label :class="['floating-label', { 'active': model || inputFocused, 'required':props.required }]">{{ placeholder }}</label>
       <input
-          v-bind="attrs"
-          autocomplete="off"
-          :required="required"
-          v-model="model"
-          :disabled="disabled"
-          @focus="inputFocused = true"
-          @input="errorMessage = ''"
-          @blur="()=> inputFocused = false"
+        v-bind="attrs"
+        autocomplete="off"
+        :required="required"
+        v-model="model"
+        :disabled="disabled"
+        @focus="inputFocused = true"
+        @input="errorMessage = ''"
+        @blur="()=> inputFocused = false"
       />
       <span class="after" >
       <slot name="after"/>
@@ -92,7 +94,22 @@ defineExpose({
       color: $red;
     }
   }
-
+  &.light{
+    .after{
+      color: $light-brand;
+    }
+    .floating-label{
+      color: $light-brand;
+      &.required::after {
+        color: $light-brand;
+      }
+    }
+    input {
+      background-color: $brand;
+      color: $light-brand;
+      border: 2px solid $light-brand;
+    }
+  }
   .after {
     cursor: pointer;
     position: absolute;

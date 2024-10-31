@@ -2,7 +2,7 @@
 import StarIcon from "~/shared/icons/StarIcon.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 export type CardInfo = {
-  id: number,
+  id: string,
   img: string,
   stars: number,
   name: string,
@@ -33,6 +33,7 @@ defineProps<CardInfo>()
 
 <style scoped lang="scss">
 .wrapper-card{
+  margin: 0 auto;
   width: fit-content;
   display: flex;
   flex-direction: column;
@@ -44,17 +45,18 @@ defineProps<CardInfo>()
   }
 }
 .wrapper-info{
-  height: 450px;
+  width: 300px;
+  padding-top: 40px;
+  height: 400px;
   position: relative;
   max-width: 21rem;
-  width: 100%;
   border-radius: 1.8rem;
   display: flex;
   flex-direction: column;
   background-color: $light-brand;
   img{
     object-fit: cover;
-    height: 60%;
+    height: 65%;
     width: 100%;
     border-radius: 1.8rem;
 
@@ -80,6 +82,7 @@ defineProps<CardInfo>()
   }
 
   .stars-block{
+    border-radius: 1rem;
     flex-direction: row-reverse;
     gap: 0.125rem;
     display: flex;
