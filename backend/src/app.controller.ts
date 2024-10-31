@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
+import { FilterParams } from './types/filter';
 
 @Controller()
 export class AppController {
@@ -10,10 +11,15 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  // @Get('/exercises')
+  // async getExercises(): Promise<any[]> {
+  //   console.log("Получение упражнений");
+  //   return await this.appService.getAllExercises();
+  // }
   @Get('/exercises')
-  async getExercises(): Promise<any[]> {
-    console.log("Получение упражнений");
-    return await this.appService.getAllExercises();
+  async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any[]> {
+    console.log('Получение отфильтрованных упражнений:', filterParams);
+    return await this.appService.getFilteredExercises(filterParams);
   }
 
   @Post('/exercises')

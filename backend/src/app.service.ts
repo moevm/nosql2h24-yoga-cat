@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MongoClient } from 'mongodb';
 import * as fs from 'fs';
+import { FilterParams } from './types/filter';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -58,6 +59,50 @@ export class AppService implements OnModuleInit {
       throw error;
     }
   }
+
+  async getFilteredExercises(filterParams: FilterParams): Promise<any[]> {
+    try {
+      const collection = this.db.collection('exercises');
+      const query: any = {};
+
+      const ensureArray = (value: any) => (Array.isArray(value) ? value : [value]);
+      if (filterParams.name && filterParams.name.length > 0) {
+        query['title'] = { $in: ensureArray(filterParams.name) };
+      }
+
+      console.log("aaaa", filterParams.spine);
+      if (filterParams.spine && filterParams.spine.length > 0) {
+        query['properties.spine'] = { $in: ensureArray(filterParams.spine) };
+      }
+
+      if (filterParams.positionInSpace && filterParams.positionInSpace.length > 0) {
+        query['properties.positionInSpace'] = { $in: ensureArray(filterParams.positionInSpace) };
+      }
+
+
+      if (filterParams.loadAccent && filterParams.loadAccent.length > 0) {
+        query['properties.loadAccent'] = { $in: ensureArray(filterParams.loadAccent) };
+      }
+
+
+      if (filterParams.periphery && filterParams.periphery.length > 0) {
+        query['properties.periphery'] = { $in: ensureArray(filterParams.periphery) };
+      }
+
+      if (filterParams.stars && filterParams.stars.length > 0) {
+        query['properties.stars'] = { $in: ensureArray(filterParams.stars) };
+      }
+
+      const exercises = await collection.find(query).toArray();
+      console.log('Полученные упражнения:', exercises);
+      return exercises;
+    } catch (error) {
+      console.error('Ошибка при получении отфильтрованных упражнений:', error);
+      return [];
+    }
+  }
+
+
 
   getHello(): string {
     return 'Hello World!';
