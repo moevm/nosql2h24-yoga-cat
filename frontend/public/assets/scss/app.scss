@@ -1,0 +1,56 @@
+/*Переменные*/
+$brand: #66546B;
+$light-brand: #ECECEC;
+$purple: #C4B9C7;
+$red: #E12635;
+$light-red: #FEF2F2;
+$light-gray: #9BA3B2;
+
+/*Миксины*/
+@mixin thin-scrollbar {
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+  }
+  &::-webkit-scrollbar-track {
+    background: #E5E2E7;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $purple;
+    border-radius: 5px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #af9cb3;
+  }
+}
+
+/*Сброс*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+a {
+  text-decoration: none;
+}
+ul, ol {
+  list-style: none;
+}
+
+/*Типография*/
+body {
+  font-family: 'Century Gothic', sans-serif;
+}
+h1 {
+  font-size: 4rem;
+  color: $brand;
+  font-weight: 400;
+}
+h3{
+  color: $light-brand;
+  font-weight: 400;
+  font-size: 3rem;
+}
+html{
+  @include thin-scrollbar
+}
