@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import * as fs from 'fs';
 import { FilterParams } from './types/filter';
 
@@ -96,6 +96,18 @@ export class AppService implements OnModuleInit {
     } catch (error) {
       console.error('Ошибка при получении отфильтрованных упражнений:', error);
       return [];
+    }
+  }
+
+
+  async getExerciseById(id: string): Promise<any> {
+    try {
+      const collection = this.db.collection('exercises');
+      const exercise = await collection.findOne({ _id: new ObjectId(id) }); // Здесь используем ObjectId
+      return exercise;
+    } catch (error) {
+      console.error('Ошибка при получении упражнения по ID:', error);
+      return null;
     }
   }
 

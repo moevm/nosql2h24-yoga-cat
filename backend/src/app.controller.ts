@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams } from './types/filter';
 
@@ -21,6 +21,13 @@ export class AppController {
     console.log('Получение отфильтрованных упражнений:', filterParams);
     return await this.appService.getFilteredExercises(filterParams);
   }
+
+  @Get('/exercises/:id')
+  async getExercise(@Param('id') id: string): Promise<any> {
+    console.log("Получение упражнения с ID:", id);
+    return await this.appService.getExerciseById(id);
+  }
+
 
   @Post('/exercises')
   async addExercise(@Body() exercise: any): Promise<any> {
