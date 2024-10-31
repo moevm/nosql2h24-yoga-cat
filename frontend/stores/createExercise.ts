@@ -46,7 +46,7 @@ export const useExerciseCreateStore = defineStore({
                     value: false,
                     title: 'Стоя на руках'
                 }, {
-                    key: ' STANDING_ON_FEET',
+                    key: 'STANDING_ON_FEET',
                     value: false,
                     title: 'Стоя на ногах'
                 }, {
