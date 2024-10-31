@@ -4,31 +4,29 @@ import * as fs from 'fs';
 
 @Injectable()
 export class AppService implements OnModuleInit {
-  private readonly uri = 'mongodb://127.0.0.1:27017'; // URI подключения к MongoDB
+  private readonly uri = 'mongodb://127.0.0.1:27017';
   private db: any;
 
-  // Метод, который вызывается при инициализации модуля
   async onModuleInit() {
     const client = new MongoClient(this.uri);
     await client.connect();
-    this.db = client.db('yoga_catalog'); // Название вашей базы данных
+    this.db = client.db('yoga_catalog');
 
-    // Импорт данных из JSON файла
     await this.importData();
   }
 
-  // Метод для импорта данных
+
   private async importData() {
     try {
       const data = fs.readFileSync('src/data/yoga.json', 'utf8');
       const exercises = JSON.parse(data);
       const collection = this.db.collection('exercises');
 
-      // Проверка на существование данных
+
       const existingExercises = await collection.find({}).toArray();
       if (existingExercises.length > 0) {
         console.log('Данные уже существуют в коллекции exercises. Импорт не выполнен.');
-        return; // Выход из метода, если данные уже существуют
+        return;
       }
 
       await collection.insertMany(exercises.exercises);
@@ -41,7 +39,7 @@ export class AppService implements OnModuleInit {
   async getAllExercises(): Promise<any[]> {
     try {
       const collection = this.db.collection('exercises');
-      const exercises = await collection.find({}).toArray(); // Получаем все записи
+      const exercises = await collection.find({}).toArray();
       return exercises;
     } catch (error) {
       console.error('Ошибка при получении упражнений:', error);
@@ -61,7 +59,6 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  // Простой метод для возврата строки
   getHello(): string {
     return 'Hello World!';
   }
