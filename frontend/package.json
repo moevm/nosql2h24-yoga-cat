@@ -12,7 +12,9 @@
     "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx,.vue . --fix"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.5.5",
     "nuxt": "^3.13.2",
+    "pinia": "^2.2.4",
     "vue": "latest",
     "vue-router": "latest"
   },
@@ -24,6 +26,9 @@
     "eslint-plugin-vue": "^9.29.1",
     "globals": "^15.11.0",
     "prettier": "^3.3.3",
+    "sass": "^1.80.4",
+    "sass-embedded": "^1.80.4",
+    "sass-loader": "^16.0.2",
     "typescript-eslint": "^8.11.0"
   }
 }
