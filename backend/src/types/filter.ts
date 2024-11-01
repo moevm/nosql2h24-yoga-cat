@@ -22,4 +22,5 @@ export type FilterParams = {
   loadAccent?: LoadAccents[];
   periphery?: Periphery[];
   stars?: Stars[];
+  page?: number;
 }
