@@ -4,13 +4,21 @@ type FiltersState = {
   exercises: Exercise[]
   properties: Properties & {title: string};
   isLoading: boolean;
+  pagination: {
+    currentPage: number,
+    totalPages: number,
+  }
 }
 
-export const useFiltersStore = defineStore({
-  id: 'filtersStore',
+export const useCatalogStore = defineStore({
+  id: 'catalogStore',
   state: (): FiltersState => ({
     isLoading: false,
     exercises: [],
+    pagination: {
+      currentPage: 1,
+      totalPages: 0,
+    },
     properties: {
       title: '',
       spine: [
@@ -55,7 +63,10 @@ export const useFiltersStore = defineStore({
         if (!response.ok) {
           throw new Error(`HTTP error status: ${response.status}`);
         }
-        this.exercises = await response.json();
+        const responseData = await response.json()
+        this.exercises = responseData.exercises;
+        this.pagination.currentPage = +responseData.pagination.currentPage;
+        this.pagination.totalPages = +responseData.pagination.totalPages;
         console.log(this.exercises);
       } catch (error) {
         console.error('Error:', error);
@@ -70,6 +81,7 @@ export const useFiltersStore = defineStore({
         'periphery',
         'stars',
       ];
+      searchParams.append('page', `${this.pagination.currentPage}`);
       if (this.properties.title !== '') {
         searchParams.append('name', this.properties.title);
       }

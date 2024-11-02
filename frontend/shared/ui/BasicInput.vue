@@ -4,7 +4,7 @@ import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
 import type {Rule} from "~/types/types";
 
 type PropsType<T>= {
-  theme: string;
+  theme?: string;
   placeholder: string;
   required?: boolean;
   disabled?: boolean;

@@ -30,7 +30,6 @@ const createExercise = async () => {
     const titleIsValid = titleInput.value?.validate()
     const descriptionIsValid = descriptionInput.value?.validate()
     const techniqueIsValid = techniqueTextarea.value?.validate()
-    console.log('ddd', contraindicationsIsValid, benefitsIsValid,dragAndDropIsValid,titleIsValid,  descriptionIsValid, techniqueIsValid )
     if (contraindicationsIsValid && benefitsIsValid && dragAndDropIsValid && titleIsValid && descriptionIsValid && techniqueIsValid){
       await exerciseStore.createExercise()
       await router.push('/catalog')

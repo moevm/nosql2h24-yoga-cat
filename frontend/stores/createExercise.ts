@@ -83,44 +83,42 @@ export const useExerciseCreateStore = defineStore({
     actions: {
         async createExercise() {
             this.isLoading = true;
-            const filteredContraindications = this.contraindications.filter(item => item && item.trim() !== "");
-            const filteredBenefit = this.benefit.filter(item => item && item.trim() !== "");
+            const filteredContraindications = this.contraindications.filter(item => item && item.trim() !== '');
+            const filteredBenefit = this.benefit.filter(item => item && item.trim() !== '');
+
             const filteredProperties = {
                 spine: this.properties.spine.filter(item => item.value).map((el) => el.key),
-                positionInSpace: this.properties.positionInSpace.filter(item => item.value).map((el => el.key)),
+                positionInSpace: this.properties.positionInSpace.filter(item => item.value).map((el) => el.key),
                 loadAccent: this.properties.loadAccent.filter(item => item.value).map((el) => el.key),
                 periphery: this.properties.periphery.filter(item => item.value).map((el) => el.key),
             };
-            const convertImageToBase64 = (file: File): Promise<string> => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = error => reject(error);
-                    reader.readAsDataURL(file);
-                });
-            };
-            let imgBase64 = null;
+
+            // Создание FormData
+            const formData = new FormData();
+            formData.append('title', this.title);
+            formData.append('description', this.description);
+            formData.append('technique', this.technique);
+            formData.append('contraindications', JSON.stringify(filteredContraindications)); // Преобразуем в строку
+            formData.append('benefit', JSON.stringify(filteredBenefit)); // Преобразуем в строку
+            formData.append('properties', JSON.stringify(filteredProperties)); // Преобразуем в строку
+
+            // Если есть изображение, добавляем его в FormData
             if (this.img) {
-                imgBase64 = await convertImageToBase64(this.img);
+                formData.append('img', this.img); // добавляем файл изображения
             }
-            const payload = {
-                title: this.title,
-                description: this.description,
-                technique: this.technique,
-                contraindications: filteredContraindications,
-                benefit: filteredBenefit,
-                properties: filteredProperties,
-                img: imgBase64,
-                reviews: []
-            };
-            const response = await fetch("http://localhost:8080/exercises", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`);
+            console.log('formData', formData);
+            try {
+                const response = await fetch('http://localhost:8080/exercises', {
+                    method: 'POST',
+                    body: formData, // Отправляем FormData
+                });
+
+                if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`);
+            } catch (error) {
+                console.error('Ошибка при создании упражнения:', error);
+            } finally {
+                this.isLoading = false;
+            }
         }
     }
 })

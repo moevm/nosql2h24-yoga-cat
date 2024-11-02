@@ -32,6 +32,7 @@ const openExplorer = (): void => {
 };
 
 const processFile = (files: FileList): void => {
+  console.log('filres', files);
   if (files.length > 1) {
     notifyStore.addNotification({
       message: 'Разрешен только один файл',
@@ -65,7 +66,9 @@ const processFile = (files: FileList): void => {
 
 const fileUrl = computed(() => {
   if (props.modelValue) {
-    return URL.createObjectURL(props.modelValue);
+    const data = URL.createObjectURL(props.modelValue);
+    console.log('data', data);
+    return data;
   }
   return undefined;
 });

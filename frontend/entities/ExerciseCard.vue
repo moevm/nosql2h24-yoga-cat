@@ -33,7 +33,6 @@ defineProps<CardInfo>()
 
 <style scoped lang="scss">
 .wrapper-card{
-  margin: 0 auto;
   width: fit-content;
   display: flex;
   flex-direction: column;
@@ -66,18 +65,22 @@ defineProps<CardInfo>()
     padding: 0.8rem;
 
     &__title {
+      overflow: hidden;
+      max-width: 100%;
+      display: inline-block;
       font-weight: 400;
       font-size: 1.6rem;
     }
 
     &__description {
+      word-wrap: break-word;
       font-size: 1rem;
       display: -webkit-box;
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.2rem;
-      -webkit-line-clamp: 5;
+      -webkit-line-clamp: 3;
     }
   }
 

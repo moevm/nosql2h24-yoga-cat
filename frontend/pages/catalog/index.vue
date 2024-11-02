@@ -1,20 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeMount} from 'vue';
 import { storeToRefs } from 'pinia';
 import BasicInput from "~/shared/ui/BasicInput.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import CheckboxesField from '~/entities/CheckboxesField.vue';
-import { useFiltersStore } from '~/stores/catalog';
+import { useCatalogStore } from '~/stores/catalog';
 import ExerciseCard from '~/entities/ExerciseCard.vue';
-const filterStore = useFiltersStore()
-const {properties, isLoading, exercises} = storeToRefs(filterStore)
+import Pagination from '~/entities/Pagination.vue';
+const catalogStore = useCatalogStore()
+const {properties, isLoading, exercises, pagination} = storeToRefs(catalogStore);
 const isShowFilters = ref(false)
-
 const resetFilters  = async () => {
   try{
+    pagination.value.currentPage = 1;
     isLoading.value = true;
-    filterStore.resetFilters()
-    await filterStore.applyFilters()
+      catalogStore.resetFilters()
+      await catalogStore.applyFilters()
+  }
+  catch(err){
+    console.log('error', err);
+  }
+  finally{
+    isLoading.value = false
+  }
+}
+const applyFilters = async() => {
+  try{
+    isLoading.value = true;
+    await catalogStore.applyFilters()
   }
   catch(err){
     console.log('error', err);
@@ -25,9 +38,10 @@ const resetFilters  = async () => {
 }
 onMounted(async()=> {
   try{
-    isLoading.value = true
-    await filterStore.applyFilters()
-    console.log('exersixes', exercises.value);
+
+    isLoading.value = true;
+      await catalogStore.applyFilters()
+      console.log('exersixes', exercises.value);
   }
   catch(err){
     console.log('err', err);
@@ -35,7 +49,9 @@ onMounted(async()=> {
   finally{
     isLoading.value = false
   }
-
+})
+onBeforeMount(()=> {
+  catalogStore.$reset()
 })
 </script>
 
@@ -56,7 +72,7 @@ onMounted(async()=> {
         <CheckboxesField :properties="properties" theme="light"/>
       </div>
       <div class="filter__footer">
-        <BasicButton label="Применить фильтры" @click="filterStore.applyFilters()"/>
+        <BasicButton label="Применить фильтры" @click="applyFilters()"/>
         <BasicButton label="Сбросить фильтры" @click="resetFilters"/>
       </div>
     </div >
@@ -69,16 +85,25 @@ onMounted(async()=> {
         </div>
       </div>
     </div>
-    <div class="result">
+    <div class="result" :class="{loading: isLoading}">
+      <div v-if="isLoading" class="loader-overlay">
+        <div class="loader"></div>
+      </div>
       <div class="result__header">
         <h3 class="result__title">Асаны по вашему запросу</h3>
         <NuxtLink to="/create">
           <BasicButton label="Добавить асану"/>
         </NuxtLink>
       </div>
-      <div class="result__body" :class="{loading: isLoading}">
+      <div class="result__body">
         <ExerciseCard v-for="(item) in exercises" :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="5"/>
       </div>
+      <Pagination
+        class="pagination"
+        :currentPage="pagination.currentPage"
+        :totalPages="pagination.totalPages"
+        @update:currentPage="(page) => { pagination.currentPage = page; applyFilters(); }"
+      />
     </div>
   </div>
 
@@ -112,6 +137,9 @@ onMounted(async()=> {
           color: #d5d4d4;
         }
       }
+    }
+    & .pagination{
+      margin-top: auto ;
     }
   }
   & .title{
@@ -164,21 +192,52 @@ onMounted(async()=> {
   max-width: 1000px;
   width: 100%;
 }
-.result{
+.result {
   display: flex;
   flex-direction: column;
   row-gap: 2rem;
-  &.loading{
 
+  &.loading {
+    position: relative;
+
+    .loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      height: 100dvh;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid $brand;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   }
-  &__body{
+
+  &__body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    row-gap: 2.5rem;
+    column-gap: 0.7rem;
   }
-
 }
-.no-filters{
+
+.no-filters {
   margin-bottom: 0.3rem;
 }
 </style>
