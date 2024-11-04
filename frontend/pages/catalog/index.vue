@@ -12,6 +12,7 @@ const {properties, isLoading, exercises, pagination} = storeToRefs(catalogStore)
 const isShowFilters = ref(false)
 const resetFilters  = async () => {
   try{
+    properties.value.title = '';
     pagination.value.currentPage = 1;
     isLoading.value = true;
       catalogStore.resetFilters()

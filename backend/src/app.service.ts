@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { MongoClient, ObjectId } from 'mongodb';
+import { BSON, MongoClient, ObjectId } from 'mongodb';
 import * as fs from 'fs';
 import { FilterParams } from './types/filter';
 import * as path from 'path';
@@ -48,11 +48,57 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  async addExercise(exercise: any): Promise<any> {
+  // async addExercise(exercise: any): Promise<any> {
+  //   try {
+  //     const collection = this.db.collection('exercises');
+  //     const result = await collection.insertOne(exercise);
+  //     console.log('Упражнение успешно добавлено:', result);
+  //     await this.saveExerciseToFile(exercise);
+  //     return exercise;
+  //   } catch (error) {
+  //     console.error('Ошибка при добавлении упражнения:', error);
+  //     throw error;
+  //   }
+  // }
+
+  async addExercise(file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
+      console.log("Полученные данные упражнения:", exerciseData);
+
+      // Извлекаем поля из Body
+      const title = exerciseData.title as string;
+      const description = exerciseData.description as string;
+      const technique = exerciseData.technique as string;
+
+      // Преобразуем данные обратно в массивы
+      const contraindications = JSON.parse(exerciseData.contraindications as string) as string[];
+      const benefit = JSON.parse(exerciseData.benefit as string) as string[];
+      const properties = JSON.parse(exerciseData.properties as string);
+      const reviews = JSON.parse(exerciseData.reviews as string) as any[]; // Укажите подходящий тип для отзывов
+
+      // Обрабатываем файл изображения, если он доступен
+      let imgBuffer: Buffer | null = null;
+      if (file) {
+        imgBuffer = file.buffer; // Используем буфер из загруженного файла
+      }
+
+      // Теперь создаем объект для добавления в базу данных
+      const exercise = {
+        title,
+        description,
+        technique,
+        contraindications,
+        benefit,
+        properties,
+        reviews,
+        img: imgBuffer // Добавляем двоичные данные изображения
+      };
+
       const result = await collection.insertOne(exercise);
       console.log('Упражнение успешно добавлено:', result);
+
+      // Сохраняем упражнение в BSON-файл
       await this.saveExerciseToFile(exercise);
       return exercise;
     } catch (error) {
@@ -61,18 +107,27 @@ export class AppService implements OnModuleInit {
     }
   }
 
+
+
   private async saveExerciseToFile(exercise: any): Promise<void> {
     try {
-      const filePath = path.resolve(__dirname, '../src/data/yoga.json');
-      const data = fs.readFileSync(filePath, 'utf8');
-      const exercises = JSON.parse(data);
+      const filePath = path.resolve(__dirname, '../src/data/yoga.bson');
+      let exercises = [];
 
-      exercises.exercises.push(exercise);
+      if (fs.existsSync(filePath)) {
+        const existingData = fs.readFileSync(filePath);
+        exercises = existingData.length ? BSON.deserialize(existingData).exercises || [] : [];
+      }
 
-      fs.writeFileSync(filePath, JSON.stringify(exercises, null, 2), 'utf8');
-      console.log('Новое упражнение сохранено в файл.');
+      // Добавляем новое упражнение в массив упражнений
+      exercises.push(exercise);
+
+      // Сериализация и запись данных обратно в BSON файл
+      const bsonData = BSON.serialize({ exercises });
+      fs.writeFileSync(filePath, bsonData);
+      console.log('Новое упражнение успешно сохранено в BSON файл.');
     } catch (error) {
-      console.error('Ошибка при записи упражнения в файл:', error);
+      console.error('Ошибка при записи упражнения в BSON файл:', error);
     }
   }
 
@@ -83,9 +138,15 @@ export class AppService implements OnModuleInit {
 
       console.log('filt', filterParams);
 
+      // if (filterParams.name && filterParams.name.length > 0) {
+      //   query.push({ 'title': { $in: Array.isArray(filterParams.name) ? filterParams.name : [filterParams.name] } });
+      // }
+
       if (filterParams.name && filterParams.name.length > 0) {
-        query.push({ 'properties.title': { $in: filterParams.name } });
+        query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
+
+      console.log("name",filterParams.name );
       if (filterParams.spine && filterParams.spine.length > 0) {
         query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine : [filterParams.spine] } });
       }
@@ -106,6 +167,8 @@ export class AppService implements OnModuleInit {
         $or: [...query]
       };
 
+      console.log("qqqquery", finalQuery);
+
       // Получение значений для пагинации
       const page = filterParams.page || 1; // Номер страницы по умолчанию 1
       const limit = 6; // Количество записей на странице по умолчанию 6
@@ -113,6 +176,7 @@ export class AppService implements OnModuleInit {
 
       // Получаем общее количество упражнений, соответствующих запросу
       const totalExercises = await collection.countDocuments(finalQuery.$or.length > 0 ? finalQuery : {});
+      console.log("total ex", totalExercises);
 
       // Рассчитываем количество страниц
       const totalPages = Math.ceil(totalExercises / limit);
