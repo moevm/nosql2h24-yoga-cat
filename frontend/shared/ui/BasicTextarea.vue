@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAttrs, ref } from 'vue';
+import { useAttrs, ref, watch } from 'vue';
 import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
 import type { Rule } from "~/types/types";
 
@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<PropsType<string | number>>(), {
   maxRows: 6,
 });
 
-const model = ref<string | number>('');
+const model = defineModel<string | number>();
 const inputFocused = ref(false);
 const attrs = useAttrs();
 const errorMessage = ref('');
@@ -46,7 +46,6 @@ defineExpose({
   validate,
 });
 
-watch(()=> model.value, ()=> {console.log("blabla", model.value)}, {immediate:true})
 </script>
 
 <template>

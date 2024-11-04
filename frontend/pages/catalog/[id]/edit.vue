@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useExerciseEditStore } from '~/stores/editExercise'
 import { storeToRefs } from 'pinia'
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNotifyStore } from '~/stores/notify'
 import FormWrapper from '~/entities/FormWrapper.vue';
@@ -54,10 +54,9 @@ const updateExercise = async () => {
     isLoading.value = false
   }
 }
-watch(()=> technique.value, ()=> {console.log("bl", technique.value)})
 
-onMounted(() => {
-  loadExercise()
+onMounted(async () => {
+  await loadExercise()
 })
 </script>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAttrs, ref } from 'vue';
+import { useAttrs, ref, watch } from 'vue';
 import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
 import type {Rule} from "~/types/types";
 
