@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors, Put } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -32,12 +32,6 @@ export class AppController {
   }
 
 
-  // @Post('/exercises')
-  // async addExercise(@Body() exercise: any): Promise<any> {
-  //   console.log("Добавление нового упражнения:", exercise);
-  //   return await this.appService.addExercise(exercise);
-  // }
-
   @Post('/exercises')
   @UseInterceptors(FileInterceptor('img')) // 'img' - это имя поля в FormData
   async addExercise(
@@ -45,5 +39,15 @@ export class AppController {
     @Body() exerciseData: any, // Здесь будут остальные поля формы
   ) {
     return this.appService.addExercise(file, exerciseData);
+  }
+
+  @Put('/exercises/:id')
+  @UseInterceptors(FileInterceptor('img'))
+  async updateExercise(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() exerciseData: any,
+  ) {
+    return this.appService.updateExercise(id, file, exerciseData);
   }
 }
