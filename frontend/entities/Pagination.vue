@@ -32,6 +32,9 @@ const emit = defineEmits(['update:currentPage']);
 
 const visiblePages = computed(() => {
   const pagesArray = [];
+  if(props.currentPage===props.totalPages){
+    pagesArray.push(props.totalPages-2);
+  }
   if (props.currentPage > 1) {
     pagesArray.push(props.currentPage - 1);
   }
@@ -39,6 +42,9 @@ const visiblePages = computed(() => {
   pagesArray.push(props.currentPage);
   if (props.currentPage < props.totalPages) {
     pagesArray.push(props.currentPage + 1);
+  }
+  if(props.currentPage===1){
+    pagesArray.push(props.currentPage + 2);
   }
   return pagesArray.filter((page) => page > 0 && page <= props.totalPages).slice(-3);
 });
