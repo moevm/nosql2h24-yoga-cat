@@ -45,6 +45,8 @@ function handleInput() {
 defineExpose({
   validate,
 });
+
+watch(()=> model.value, ()=> {console.log("blabla", model.value)}, {immediate:true})
 </script>
 
 <template>

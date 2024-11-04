@@ -210,7 +210,57 @@ export class AppService implements OnModuleInit {
     }
   }
 
+  async updateExercise(id: string, file: Express.Multer.File, exerciseData: any): Promise<any> {
+    try {
+      const collection = this.db.collection('exercises');
+      console.log("Обновление упражнения с ID:", id);
 
+      // Извлекаем поля из Body
+      const title = exerciseData.title as string;
+      const description = exerciseData.description as string;
+      const technique = exerciseData.technique as string;
+
+      // Преобразуем данные обратно в массивы
+      const contraindications = JSON.parse(exerciseData.contraindications as string) as string[];
+      const benefit = JSON.parse(exerciseData.benefit as string) as string[];
+      const properties = JSON.parse(exerciseData.properties as string);
+      const reviews = JSON.parse(exerciseData.reviews as string) as any[];
+
+      // Обрабатываем файл изображения, если он доступен
+      let imgBuffer: Buffer | null = null;
+      if (file) {
+        imgBuffer = file.buffer; // Используем буфер из загруженного файла
+      }
+
+      // Теперь создаем объект для обновления в базе данных
+      const updatedExercise = {
+        title,
+        description,
+        technique,
+        contraindications,
+        benefit,
+        properties,
+        reviews,
+        img: imgBuffer // Добавляем двоичные данные изображения
+      };
+
+      const result = await collection.updateOne(
+        { _id: new ObjectId(id) }, // Фильтр для поиска по ID
+        { $set: updatedExercise } // Обновляем данные
+      );
+
+      console.log('Упражнение успешно обновлено:', result);
+
+      if (result.modifiedCount === 0) {
+        throw new Error('Упражнение не найдено или не изменено');
+      }
+
+      return updatedExercise;
+    } catch (error) {
+      console.error('Ошибка при обновлении упражнения:', error);
+      throw error;
+    }
+  }
 
 
   async getExerciseById(id: string): Promise<any> {
