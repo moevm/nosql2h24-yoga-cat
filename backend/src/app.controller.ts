@@ -50,4 +50,22 @@ export class AppController {
   ) {
     return this.appService.updateExercise(id, file, exerciseData);
   }
+
+  @Put('/exercises/:id/review')
+  async addReviewToExercise(
+    @Param('id') id: string,
+    @Body('review') review: any, // Получаем отзыв из тела запроса
+  ) {
+    console.log("Добавление отзыва к упражнению с ID:", id, "Отзыв:", review);
+    return await this.appService.addReviewToExercise(id, review);
+  }
+
+
+  @Get('/exercises/:id/review')
+  async getReviews(@Param('id') id: string): Promise<any> {
+    console.log("Получение отзывов упражнения с ID:", id);
+    return await this.appService.getReviews(id);
+  }
+
+
 }

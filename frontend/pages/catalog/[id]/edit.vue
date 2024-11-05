@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useExerciseEditStore } from '~/stores/editExercise'
 import { storeToRefs } from 'pinia'
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router'
 import { useNotifyStore } from '~/stores/notify'
 import FormWrapper from '~/entities/FormWrapper.vue';
@@ -11,7 +11,12 @@ import BasicTextarea from '~/shared/ui/BasicTextarea.vue';
 import InputList from '~/entities/InputList.vue';
 import CheckboxesField from '~/entities/CheckboxesField.vue';
 import BasicButton from '~/shared/ui/BasicButton.vue';
-
+const contraindicationsInputList = ref(null)
+const benefitInputList = ref(null)
+const dragAndDrop = ref(null)
+const titleInput = ref(null)
+const descriptionInput = ref(null)
+const techniqueTextarea = ref(null)
 const exerciseStore = useExerciseEditStore()
 const notifyStore = useNotifyStore()
 const router = useRouter()
@@ -37,13 +42,22 @@ const loadExercise = async () => {
 const updateExercise = async () => {
   isLoading.value = true
   try {
-    await exerciseStore.updateExercise(route.params.id as string)
-    notifyStore.addNotification({
-      message: 'Асана успешно обновлена',
-      type: 'success',
-      id: Date.now()
-    })
-    await router.push('/catalog')
+    const contraindicationsIsValid = contraindicationsInputList.value?.validate()
+    const benefitsIsValid = benefitInputList.value?.validate()
+    const dragAndDropIsValid = dragAndDrop.value?.validate()
+    const titleIsValid = titleInput.value?.validate()
+    const descriptionIsValid = descriptionInput.value?.validate()
+    const techniqueIsValid = techniqueTextarea.value?.validate()
+    if (contraindicationsIsValid && benefitsIsValid && dragAndDropIsValid && titleIsValid && descriptionIsValid && techniqueIsValid) {
+      //await exerciseStore.updateExercise(route.params.id as string)
+      // notifyStore.addNotification({
+      //   message: 'Асана успешно обновлена',
+      //   type: 'success',
+      //   id: Date.now()
+      // })
+      console.log("Succcccccc");
+    }
+    //await router.push('/catalog')
   } catch (error) {
     notifyStore.addNotification({
       message: 'Ошибка при обновлении асаны',
@@ -65,11 +79,11 @@ onMounted(async () => {
     <h1 class="title">Редактировать асану</h1>
     <FormWrapper class="form">
       <DragAndDrop v-model="img" ref="dragAndDrop" :required="false" />
-      <BasicInput ref="titleInput" type="text" v-model="title" placeholder="Название" :required="true" />
-      <BasicInput ref="descriptionInput" type="text" v-model="description" placeholder="Описание" :required="true" />
-      <BasicTextarea ref="techniqueTextarea" v-model="technique" placeholder="Техника выполнения" :required="true" />
-      <InputList ref="contraindicationsInputList" v-model="contraindications" title="Противопоказания" :required="true" />
-      <InputList ref="benefitInputList" v-model="benefit" title="Польза" :required="true" />
+      <BasicInput ref="titleInput" type="text" v-model="title" placeholder="Название" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']" />
+      <BasicInput ref="descriptionInput" type="text" v-model="description" placeholder="Описание" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']" />
+      <BasicTextarea ref="techniqueTextarea" v-model="technique" placeholder="Техника выполнения" :required="true" :rules="[(val:string | number) => `${val}`.length>30 || 'Поле должно содержать более 30 символов']" />
+      <InputList ref="contraindicationsInputList" v-model="contraindications" title="Противопоказания" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
+      <InputList ref="benefitInputList" v-model="benefit" title="Польза" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
       <CheckboxesField :properties="properties" theme="purple" />
       <BasicButton label="Сохранить изменения" theme="purple" class="add-button" @click="updateExercise" />
     </FormWrapper>

@@ -274,6 +274,58 @@ export class AppService implements OnModuleInit {
     }
   }
 
+  async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
+    try {
+      const collection = this.db.collection('exercises');
+
+      const review = {
+        name: reviewData.name,
+        age: reviewData.age,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        date: new Date() // добавляем текущую дату
+      };
+
+      const result = await collection.updateOne(
+        { _id: new ObjectId(exerciseId) },
+        { $push: { reviews: review } }
+      );
+
+      console.log('Отзыв успешно добавлен к упражнению:', result);
+
+      if (result.modifiedCount === 0) {
+        throw new Error('Упражнение не найдено или не изменено');
+      }
+
+      return review;
+    } catch (error) {
+      console.error('Ошибка при добавлении отзыва к упражнению:', error);
+      throw error;
+    }
+  }
+
+
+  async getReviews(id: string): Promise<any[]> {
+    try {
+      const collection = this.db.collection('exercises');
+      const exercise = await collection.findOne(
+        { _id: new ObjectId(id) },
+        { projection: { reviews: 1 } } // Выбираем только поле `reviews`
+      );
+
+      if (!exercise) {
+        console.error(`Упражнение с ID ${id} не найдено`);
+        return [];
+      }
+
+      console.log("Полученные отзывы:", exercise.reviews);
+      return exercise.reviews || [];
+    } catch (error) {
+      console.error('Ошибка при получении отзывов:', error);
+      return [];
+    }
+  }
+
 
   getHello(): string {
     return 'Hello World!';
