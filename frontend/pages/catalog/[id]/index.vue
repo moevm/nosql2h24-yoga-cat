@@ -5,14 +5,20 @@ import { storeToRefs } from 'pinia';
 import { useExerciseStore } from '~/stores/showExercise';
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import StarIcon from "~/shared/icons/StarIcon.vue";
+import ModalWindow from '~/entities/ModalWindow.vue';
 const route = useRoute();
 const router = useRouter();
 const asanaId = route.params.id;
+const isOpenRemoveWindow = ref(false)
 const exerciseStore = useExerciseStore();
 const {isLoading, exercise} = storeToRefs(exerciseStore);
 const data = computed(()=>exercise.value);
 const goToReview = async ()=> {
   await router.push(`/catalog/${route.params.id}/feedback`);
+}
+const removeAsana = () => {
+  console.log('remove');
+  isOpenRemoveWindow.value = false;
 }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
@@ -25,7 +31,7 @@ onMounted(async ()=> {
     <div class="header_bar">
       <BasicButton class="button" label="Редактировать асану"/>
       <h1 class="title">{{exercise.title}}</h1>
-      <BasicButton class="button" label="Удалить асану"/>
+      <BasicButton class="button" label="Удалить асану" @click="()=> isOpenRemoveWindow = true"/>
     </div>
     <div class="description_block">
       <div class="stars_description">
@@ -58,6 +64,14 @@ onMounted(async ()=> {
       </div>
     </div>
     <BasicButton label="Оставить отзыв" @click="goToReview"/>
+    <ModalWindow @close="isOpenRemoveWindow=false" :closed-click-outside="true" :is-visible="isOpenRemoveWindow" class="remove-modal" title="Вы уверены, что хотите удалить асану из каталога?" subtitle="Отменить это действие будет невозможно" >
+      <template #buttons>
+        <div class="remove-modal__buttons">
+          <BasicButton label="Удалить" class="modal-button" @click="removeAsana" />
+          <BasicButton label="Отмена" theme="purple" class="modal-button" @click="isOpenRemoveWindow=false" />
+        </div>
+      </template>
+    </ModalWindow>
   </div>
 </template>
 
@@ -172,5 +186,15 @@ onMounted(async ()=> {
     }
   }
 }
-
+.remove-modal{
+  &__buttons{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 100px;
+    .modal-button{
+      width:200px;
+    }
+  }
+}
 </style>w
