@@ -70,7 +70,7 @@ export class AppService implements OnModuleInit {
       const title = exerciseData.title as string;
       const description = exerciseData.description as string;
       const technique = exerciseData.technique as string;
-
+      const rating = exerciseData.rating
       // Преобразуем данные обратно в массивы
       const contraindications = JSON.parse(exerciseData.contraindications as string) as string[];
       const benefit = JSON.parse(exerciseData.benefit as string) as string[];
@@ -89,12 +89,12 @@ export class AppService implements OnModuleInit {
         description,
         technique,
         contraindications,
+        rating: rating,
         benefit,
         properties,
         reviews,
         img: imgBuffer // Добавляем двоичные данные изображения
       };
-
       const result = await collection.insertOne(exercise);
       console.log('Упражнение успешно добавлено:', result);
 
@@ -136,7 +136,6 @@ export class AppService implements OnModuleInit {
       const collection = this.db.collection('exercises');
       const query: any[] = [];
 
-      console.log('filt', filterParams);
 
       // if (filterParams.name && filterParams.name.length > 0) {
       //   query.push({ 'title': { $in: Array.isArray(filterParams.name) ? filterParams.name : [filterParams.name] } });
@@ -146,7 +145,6 @@ export class AppService implements OnModuleInit {
         query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
 
-      console.log("name",filterParams.name );
       if (filterParams.spine && filterParams.spine.length > 0) {
         query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine : [filterParams.spine] } });
       }
@@ -162,12 +160,10 @@ export class AppService implements OnModuleInit {
       if (filterParams.stars && filterParams.stars.length > 0) {
         query.push({ 'properties.stars': { $in: Array.isArray(filterParams.stars) ? filterParams.stars : [filterParams.stars] } });
       }
-
       const finalQuery = {
         $or: [...query]
       };
 
-      console.log("qqqquery", finalQuery);
 
       // Получение значений для пагинации
       const page = filterParams.page || 1; // Номер страницы по умолчанию 1
@@ -176,7 +172,6 @@ export class AppService implements OnModuleInit {
 
       // Получаем общее количество упражнений, соответствующих запросу
       const totalExercises = await collection.countDocuments(finalQuery.$or.length > 0 ? finalQuery : {});
-      console.log("total ex", totalExercises);
 
       // Рассчитываем количество страниц
       const totalPages = Math.ceil(totalExercises / limit);
@@ -186,8 +181,6 @@ export class AppService implements OnModuleInit {
         .skip(skip)
         .limit(limit)
         .toArray();
-
-      console.log('Полученные упражнения:', exercises);
 
       // Возвращаем объект с упражнениями и информацией о пагинации
       return {
@@ -213,7 +206,7 @@ export class AppService implements OnModuleInit {
   async updateExercise(id: string, file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
-      console.log("Обновление упражнения с ID:", id);
+      console.log("Обновление упражнения с ID:", id, exerciseData);
 
       // Извлекаем поля из Body
       const title = exerciseData.title as string;
@@ -277,7 +270,6 @@ export class AppService implements OnModuleInit {
   async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
-
       const review = {
         name: reviewData.name,
         age: reviewData.age,

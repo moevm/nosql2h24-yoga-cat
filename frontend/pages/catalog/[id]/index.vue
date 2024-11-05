@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import {onMounted} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useExerciseStore } from '~/stores/showExercise';
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import StarIcon from "~/shared/icons/StarIcon.vue";
 const route = useRoute();
+const router = useRouter();
 const asanaId = route.params.id;
 const exerciseStore = useExerciseStore();
 const {isLoading, exercise} = storeToRefs(exerciseStore);
 const data = computed(()=>exercise.value);
+const goToReview = async ()=> {
+  await router.push(`/catalog/${route.params.id}/feedback`);
+}
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
   console.log(data);
@@ -25,7 +29,7 @@ onMounted(async ()=> {
     </div>
     <div class="description_block">
       <div class="stars_description">
-        <div class="stars"><StarIcon v-for="star in 5" :key="star" :width="50" :height="50"/></div>
+        <div class="stars"><StarIcon v-for="star in 5" :key="star" width="50" height="50"/></div>
         <div class="description">
           <h3>Описание</h3>
           <br>
@@ -53,6 +57,7 @@ onMounted(async ()=> {
         </div>
       </div>
     </div>
+    <BasicButton label="Оставить отзыв" @click="goToReview"/>
   </div>
 </template>
 
@@ -90,6 +95,7 @@ onMounted(async ()=> {
         flex-direction: row;
         width: 100%;
         height: 40%;
+        color: #FFA931;
       }
       & .description{
         display: flex;

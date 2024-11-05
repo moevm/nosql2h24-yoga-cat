@@ -96,21 +96,22 @@ export const useExerciseCreateStore = defineStore({
             // Создание FormData
             const formData = new FormData();
             formData.append('title', this.title);
+            formData.append('rating', String(0));
+            formData.append('reviews', JSON.stringify([]));
             formData.append('description', this.description);
             formData.append('technique', this.technique);
             formData.append('contraindications', JSON.stringify(filteredContraindications)); // Преобразуем в строку
             formData.append('benefit', JSON.stringify(filteredBenefit)); // Преобразуем в строку
             formData.append('properties', JSON.stringify(filteredProperties)); // Преобразуем в строку
 
-            // Если есть изображение, добавляем его в FormData
             if (this.img) {
-                formData.append('img', this.img); // добавляем файл изображения
+                formData.append('img', this.img);
             }
             console.log('formData', formData);
             try {
                 const response = await fetch('http://localhost:8080/exercises', {
                     method: 'POST',
-                    body: formData, // Отправляем FormData
+                    body: formData,
                 });
 
                 if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`);

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import EditIcon from "~/shared/icons/EditIcon.vue";
-import CameraIcon from "~/shared/icons/CameraIcon.vue";
-import { useNotifyStore } from "~/stores/notify";
-import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
+import { computed, ref } from 'vue';
+import EditIcon from '~/shared/icons/EditIcon.vue';
+import CameraIcon from '~/shared/icons/CameraIcon.vue';
+import { useNotifyStore } from '~/stores/notify';
+import ErrorIcon from '~/shared/icons/ErrorIcon.vue';
 
 const props = defineProps({
   modelValue: { type: [File, null], default: null },
@@ -39,6 +39,7 @@ const processFile = (files: FileList): void => {
       type: 'error',
       id: Date.now()
     });
+    clearFileInput();
     return;
   }
 
@@ -49,15 +50,16 @@ const processFile = (files: FileList): void => {
       type: 'error',
       id: Date.now()
     });
+    clearFileInput();
     return;
   }
-
   if (file.size / 1024 / 1024 > props.maxSize) {
     notifyStore.addNotification({
       message: `Слишком большой размер файла. Максимум ${props.maxSize} MB.`,
       type: 'error',
       id: Date.now()
     });
+    clearFileInput();
     return;
   }
   errorMessage.value = ''
@@ -66,9 +68,7 @@ const processFile = (files: FileList): void => {
 
 const fileUrl = computed(() => {
   if (props.modelValue) {
-    const data = URL.createObjectURL(props.modelValue);
-    console.log('data', data);
-    return data;
+    return URL.createObjectURL(props.modelValue);
   }
   return undefined;
 });
@@ -100,7 +100,11 @@ const validate = () => {
 const editFile = (): void => {
   fileInput.value?.click();
 };
-
+const clearFileInput = () => {
+  if(fileInput.value){
+    fileInput.value.value = null;
+  }
+};
 const handleClickWrap = (): void => {
   if (!props.modelValue) {
     openExplorer();
@@ -127,7 +131,7 @@ defineExpose({
           type="file"
           class="drag-drop-wrap-input"
           :accept="acceptedFileTypes"
-          @change="handleFileUpload"
+          @input="handleFileUpload"
       />
 
       <div v-if="modelValue" class="uploaded-image">

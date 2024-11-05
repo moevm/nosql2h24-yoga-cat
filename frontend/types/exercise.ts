@@ -29,5 +29,6 @@ export type Exercise = {
   technique: string,
   contraindications: string[],
   benefit: string[],
+  rating: number,
   properties: Properties
 }

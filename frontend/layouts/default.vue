@@ -6,10 +6,11 @@ import NotificationMessages from "~/entities/NotificationMessages.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 const route = useRoute();
 const isHomePage = computed(() => route.path === '/');
+const isReviewPage = computed(() => route.path === '/feedback');
 </script>
 
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper" :class="{reviewPage: isReviewPage}">
     <div class="container">
       <div class="header">
         <NuxtLink to="/" class="logo"><Logo/></NuxtLink>
@@ -38,6 +39,9 @@ const isHomePage = computed(() => route.path === '/');
   height: 100%;
   width: 100%;
   background-color:$light-brand;
+  &.reviewPage{
+    background-color: #a49fb3;
+  }
   @include thin-scrollbar;
   & .container{
     width: 100%;
@@ -52,7 +56,7 @@ const isHomePage = computed(() => route.path === '/');
     max-width: 1600px;
     & .header{
       max-width: 1600px;
-      z-index: 2;
+      z-index: 5;
       position: fixed;
       top: 0;
       width: 100%;

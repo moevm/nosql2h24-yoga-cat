@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,10 +19,7 @@ export class AppController {
   // }
   @Get('/exercises')
   async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any> {
-    console.log('Получение отфильтрованных упражнений:', filterParams);
-    let a = await this.appService.getFilteredExercises(filterParams);
-    console.log("ededede", a);
-    return a;
+    return await this.appService.getFilteredExercises(filterParams);
   }
 
   @Get('/exercises/:id')
@@ -54,7 +51,7 @@ export class AppController {
   @Put('/exercises/:id/review')
   async addReviewToExercise(
     @Param('id') id: string,
-    @Body('review') review: any, // Получаем отзыв из тела запроса
+    @Body() review: any, // Получаем отзыв из тела запроса
   ) {
     console.log("Добавление отзыва к упражнению с ID:", id, "Отзыв:", review);
     return await this.appService.addReviewToExercise(id, review);

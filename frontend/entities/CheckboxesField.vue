@@ -48,7 +48,9 @@ defineProps<Props>()
             <div class="item" :class="{'left-side': idx < 3, 'right-side': idx >= 3}">
               <Checkbox  v-model="item.value" :theme="theme"/>
               <span class="item__title">{{item.key}}</span>
-              <StarIcon/>
+              <div class="item__icon">
+                <StarIcon/>
+              </div>
             </div>
           </div>
         </div>
@@ -103,6 +105,9 @@ defineProps<Props>()
       align-items: center;
       gap: 0.5rem;
       width: fit-content;
+      &__icon{
+        color: #FFA931;
+      }
     }
   }
 

@@ -36,6 +36,7 @@ defineProps<CardInfo>()
   width: fit-content;
   display: flex;
   flex-direction: column;
+  margin: 0 auto;
   row-gap: 0.5rem;
   align-items: center;
   .more-info-button{
@@ -85,6 +86,7 @@ defineProps<CardInfo>()
   }
 
   .stars-block{
+    color: #FFA931;
     border-radius: 1rem;
     flex-direction: row-reverse;
     gap: 0.125rem;
