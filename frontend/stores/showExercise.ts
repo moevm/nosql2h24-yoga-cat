@@ -61,7 +61,6 @@ export const useExerciseStore = defineStore({
                     throw new Error(`HTTP error status: ${response.status}`);
                 }
                 const responseData = await response.json()
-                console.log(responseData);
                 this.exercise = responseData;
             } catch (error) {
                 console.error('Error:', error);
