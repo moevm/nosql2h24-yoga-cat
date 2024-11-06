@@ -3,6 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 import {onMounted} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useExerciseStore } from '~/stores/showExercise';
+import { useReviewStore } from '~/stores/showReviews';
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import StarIcon from "~/shared/icons/StarIcon.vue";
 import ModalWindow from '~/entities/ModalWindow.vue';
@@ -11,8 +12,11 @@ const router = useRouter();
 const asanaId = route.params.id;
 const isOpenRemoveWindow = ref(false)
 const exerciseStore = useExerciseStore();
-const {isLoading, exercise} = storeToRefs(exerciseStore);
+const reviewsStore = useReviewStore();
+const {reviews} = storeToRefs(reviewsStore);
+const {exercise} = storeToRefs(exerciseStore);
 const data = computed(()=>exercise.value);
+const exercisesData = computed(()=>reviews.value.slice(0,3));
 const goToReview = async ()=> {
   await router.push(`/catalog/${route.params.id}/feedback`);
 }
@@ -22,6 +26,7 @@ const removeAsana = () => {
 }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
+  await reviewsStore.getReviews(asanaId);
   console.log(data);
 })
 </script>
@@ -72,6 +77,7 @@ onMounted(async ()=> {
         </div>
       </template>
     </ModalWindow>
+    <div v-for="item in exercisesData">{{item.name}}</div>
   </div>
 </template>
 
