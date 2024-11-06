@@ -7,6 +7,7 @@ import { useReviewStore } from '~/stores/showReviews';
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import StarIcon from "~/shared/icons/StarIcon.vue";
 import ModalWindow from '~/entities/ModalWindow.vue';
+import ReviewCard from '~/entities/ReviewCard.vue'
 const route = useRoute();
 const router = useRouter();
 const asanaId = route.params.id;
@@ -24,10 +25,13 @@ const removeAsana = () => {
   console.log('remove');
   isOpenRemoveWindow.value = false;
 }
+const parseDate = (date: string) => {
+  const tmp = new Date(date);
+  return `${tmp.getDate()}.${tmp.getMonth()+1} ${tmp.getHours()}:${tmp.getMinutes()}`;
+}
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
   await reviewsStore.getReviews(asanaId);
-  console.log(data);
 })
 </script>
 
@@ -77,7 +81,7 @@ onMounted(async ()=> {
         </div>
       </template>
     </ModalWindow>
-    <div v-for="item in exercisesData">{{item.name}}</div>
+    <ReviewCard v-for="item in exercisesData" :name="item.name" :stars="item.rating" :age="item.age" :date="parseDate(item.date)" :comment="item.comment"/>
   </div>
 </template>
 
