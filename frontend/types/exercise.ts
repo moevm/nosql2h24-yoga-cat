@@ -32,3 +32,11 @@ export type Exercise = {
   rating: number,
   properties: Properties
 }
+export type Review = {
+  _id: string,
+  name: string,
+  age: string,
+  rating: number,
+  comment: string,
+  date: string
+}
