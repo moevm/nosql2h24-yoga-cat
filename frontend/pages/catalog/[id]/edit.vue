@@ -49,12 +49,12 @@ const updateExercise = async () => {
     const descriptionIsValid = descriptionInput.value?.validate()
     const techniqueIsValid = techniqueTextarea.value?.validate()
     if (contraindicationsIsValid && benefitsIsValid && dragAndDropIsValid && titleIsValid && descriptionIsValid && techniqueIsValid) {
-      //await exerciseStore.updateExercise(route.params.id as string)
-      // notifyStore.addNotification({
-      //   message: 'Асана успешно обновлена',
-      //   type: 'success',
-      //   id: Date.now()
-      // })
+      await exerciseStore.updateExercise(route.params.id as string)
+      notifyStore.addNotification({
+        message: 'Асана успешно обновлена',
+        type: 'success',
+        id: Date.now()
+      })
       console.log("Succcccccc");
     }
     //await router.push('/catalog')
