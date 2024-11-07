@@ -38,7 +38,9 @@ onMounted(async ()=> {
 <template>
   <div class="wrapper">
     <div class="header_bar">
-      <BasicButton class="button" label="Редактировать асану"/>
+      <NuxtLink class="button" :to="`${route.params.id}/edit`">
+        <BasicButton label="Редактировать асану"/>
+      </NuxtLink>
       <h1 class="title">{{exercise.title}}</h1>
       <BasicButton class="button" label="Удалить асану" @click="()=> isOpenRemoveWindow = true"/>
     </div>
@@ -72,7 +74,18 @@ onMounted(async ()=> {
         </div>
       </div>
     </div>
-    <BasicButton label="Оставить отзыв" @click="goToReview"/>
+    <div class="review_block">
+      <div class="review_header">
+        <h3>Отзывы</h3>
+        <NuxtLink :to="`/catalog/${route.params.id}/feedback`" class="link">Оставить отзыв</NuxtLink>
+      </div>
+      <br>
+      <div class="review_content">
+        <ReviewCard v-for="item in exercisesData" :name="item.name" :stars="item.rating" :age="item.age" :date="parseDate(item.date)" :comment="item.comment"/>
+      </div>
+      <br>
+      <BasicButton class="show_review_bth" label="Смотреть всё"/>
+    </div>
     <ModalWindow @close="isOpenRemoveWindow=false" :closed-click-outside="true" :is-visible="isOpenRemoveWindow" class="remove-modal" title="Вы уверены, что хотите удалить асану из каталога?" subtitle="Отменить это действие будет невозможно" >
       <template #buttons>
         <div class="remove-modal__buttons">
@@ -81,7 +94,6 @@ onMounted(async ()=> {
         </div>
       </template>
     </ModalWindow>
-    <ReviewCard v-for="item in exercisesData" :name="item.name" :stars="item.rating" :age="item.age" :date="parseDate(item.date)" :comment="item.comment"/>
   </div>
 </template>
 
@@ -193,6 +205,38 @@ onMounted(async ()=> {
     & .content{
       font-size: 1.5rem;
       color:  $brand;
+    }
+  }
+  & .review_block{
+    background-color: $brand;
+    border-radius: 5rem;
+    width: 100%;
+    padding: 2.5rem 9rem;
+    & .review_content{
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      row-gap: 2.5rem;
+      column-gap: 0.7rem;
+    }
+    & .review_header{
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      & .link{
+        margin: auto 0 0 auto;
+        color: $light-brand;
+        font-size: 1.8rem;
+        font-weight: 400;
+        text-decoration: underline;
+        &:hover{
+          color: $purple;
+        }
+      }
+    }
+    & .show_review_bth{
+      width: 33.3%;
+      margin-left: 33.3%;
     }
   }
 }

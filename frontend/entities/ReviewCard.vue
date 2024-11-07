@@ -16,7 +16,7 @@ defineProps<CardInfo>()
     <div class="info-block">
       <div class="name-age">{{name+", "+age}}</div>
       <div class="stars-block">
-        <StarIcon v-for="star in stars" :key="star" :width="22" :height="22"/>
+        <StarIcon v-for="star in stars" :key="star" :width="`${22}`" :height="`${22}`"/>
       </div>
       <div class="comment-block">{{comment}}</div>
     </div>
@@ -25,9 +25,8 @@ defineProps<CardInfo>()
 
 <style scoped lang="scss">
 .wrapper{
-  max-width: 30%;
+  max-width: 100%;
   padding: 0.5rem 1.5rem 1.5rem 1.5rem;
-  //height: 400px;
   position: relative;
   border-radius: 2.5rem;
   display: flex;
