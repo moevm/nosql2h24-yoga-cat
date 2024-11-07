@@ -75,10 +75,10 @@ onMounted(async ()=> {
         <h3>Отзывы</h3>
         <NuxtLink :to="`/catalog/${route.params.id}/feedback`" class="link">Оставить отзыв</NuxtLink>
       </div>
-      <br>
       <div class="review_content">
         <ReviewCard v-for="item in reviewsData" :name="item.name" :stars="item.rating" :age="item.age" :date="item.date" :comment="item.comment"/>
       </div>
+      <br>
       <BasicButton class="show_review_bth" @click="goToReviews" label="Смотреть всё"/>
     </div>
     <ModalWindow @close="isOpenRemoveWindow=false" :closed-click-outside="true" :is-visible="isOpenRemoveWindow" class="remove-modal" title="Вы уверены, что хотите удалить асану из каталога?" subtitle="Отменить это действие будет невозможно" >
