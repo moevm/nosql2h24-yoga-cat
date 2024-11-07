@@ -8,11 +8,15 @@ export type CardInfo = {
   comment: string
 }
 defineProps<CardInfo>()
+const parseDate = (date: string) => {
+  const tmp = new Date(date);
+  return `${tmp.getDate()}.${tmp.getMonth()+1} ${tmp.getHours()}:${tmp.getMinutes()}`;
+}
 </script>
 
 <template>
   <div class="wrapper">
-    <p class="date-block">{{date}}</p>
+    <p class="date-block">{{parseDate(date)}}</p>
     <div class="info-block">
       <div class="name-age">{{name+", "+age}}</div>
       <div class="stars-block">
@@ -33,6 +37,7 @@ defineProps<CardInfo>()
   flex-direction: column;
   row-gap: 0.5rem;
   background-color: $light-brand;
+  margin-top: 1rem;
   & .date-block{
     margin-left: auto;
     margin-right: 0;

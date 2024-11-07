@@ -17,17 +17,13 @@ const reviewsStore = useReviewStore();
 const {reviews} = storeToRefs(reviewsStore);
 const {exercise} = storeToRefs(exerciseStore);
 const data = computed(()=>exercise.value);
-const exercisesData = computed(()=>reviews.value.slice(0,3));
-const goToReview = async ()=> {
-  await router.push(`/catalog/${route.params.id}/feedback`);
+const reviewsData = computed(()=>reviews.value.slice(0,3));
+const goToReviews = async ()=> {
+  await router.push(`/catalog/${route.params.id}/reviews`);
 }
 const removeAsana = () => {
   console.log('remove');
   isOpenRemoveWindow.value = false;
-}
-const parseDate = (date: string) => {
-  const tmp = new Date(date);
-  return `${tmp.getDate()}.${tmp.getMonth()+1} ${tmp.getHours()}:${tmp.getMinutes()}`;
 }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
@@ -38,7 +34,7 @@ onMounted(async ()=> {
 <template>
   <div class="wrapper">
     <div class="header_bar">
-      <NuxtLink class="button" :to="`${route.params.id}/edit`">
+      <NuxtLink class="button" :to="`/catalog/${route.params.id}/edit`">
         <BasicButton label="Редактировать асану"/>
       </NuxtLink>
       <h1 class="title">{{exercise.title}}</h1>
@@ -81,10 +77,9 @@ onMounted(async ()=> {
       </div>
       <br>
       <div class="review_content">
-        <ReviewCard v-for="item in exercisesData" :name="item.name" :stars="item.rating" :age="item.age" :date="parseDate(item.date)" :comment="item.comment"/>
+        <ReviewCard v-for="item in reviewsData" :name="item.name" :stars="item.rating" :age="item.age" :date="item.date" :comment="item.comment"/>
       </div>
-      <br>
-      <BasicButton class="show_review_bth" label="Смотреть всё"/>
+      <BasicButton class="show_review_bth" @click="goToReviews" label="Смотреть всё"/>
     </div>
     <ModalWindow @close="isOpenRemoveWindow=false" :closed-click-outside="true" :is-visible="isOpenRemoveWindow" class="remove-modal" title="Вы уверены, что хотите удалить асану из каталога?" subtitle="Отменить это действие будет невозможно" >
       <template #buttons>
@@ -209,7 +204,7 @@ onMounted(async ()=> {
   }
   & .review_block{
     background-color: $brand;
-    border-radius: 5rem;
+    border-radius: 5rem 5rem 0 0;
     width: 100%;
     padding: 2.5rem 9rem;
     & .review_content{
