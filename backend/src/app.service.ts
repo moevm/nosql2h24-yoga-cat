@@ -375,6 +375,36 @@ export class AppService implements OnModuleInit {
   }
 
 
+  async deleteExercise(id: string): Promise<any> {
+    try {
+      const collection = this.db.collection('exercises');
+
+      // Проверяем, существует ли упражнение с таким ID
+      const exercise = await collection.findOne({ _id: new ObjectId(id) });
+      if (!exercise) {
+        throw new Error('Упражнение не найдено');
+      }
+
+      // Если упражнение имеет изображение, удаляем его из GridFS
+      if (exercise.img) {
+        const imageId = exercise.img.toString();
+        const imageObjectId = new ObjectId(imageId);
+        await this.gridFSBucket.delete(imageObjectId); // Удаляем файл из GridFS
+        console.log(`Изображение с ID ${imageId} удалено из GridFS`);
+      }
+
+      // Удаляем упражнение из коллекции
+      await collection.deleteOne({ _id: new ObjectId(id) });
+      console.log(`Упражнение с ID ${id} удалено из базы данных`);
+
+      return { message: `Упражнение с ID ${id} успешно удалено` };
+    } catch (error) {
+      console.error('Ошибка при удалении упражнения:', error);
+      throw new Error('Ошибка при удалении упражнения');
+    }
+  }
+
+
   getHello(): string {
     return 'Hello World!';
   }
