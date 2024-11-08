@@ -21,9 +21,11 @@ const reviewsData = computed(()=>reviews.value.slice(0,3));
 const goToReviews = async ()=> {
   await router.push(`/catalog/${route.params.id}/reviews`);
 }
-const removeAsana = () => {
-  console.log('remove');
+const removeAsana = async () => {
+  if(Array.isArray(asanaId)) await exerciseStore.removeExercise(asanaId[0])
+  else await exerciseStore.removeExercise(asanaId)
   isOpenRemoveWindow.value = false;
+  await router.push('/catalog')
 }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
