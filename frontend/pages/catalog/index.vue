@@ -42,7 +42,7 @@ onMounted(async()=> {
 
     isLoading.value = true;
       await catalogStore.applyFilters()
-      console.log('exersixes', exercises.value);
+      console.log('exercixes', exercises.value);
   }
   catch(err){
     console.log('err', err);
@@ -63,7 +63,9 @@ onBeforeMount(()=> {
       <div class="filter__header">
         <h3 class="header__title">Фильтры</h3>
         <div class="header__buttons">
-          <BasicButton label="Искать по отзывам"/>
+          <NuxtLink to="/review-search">
+            <BasicButton label="Искать по отзывам"/>
+          </NuxtLink>
           <span class="header__buttons__hide" @click="isShowFilters=false">Скрыть</span>
         </div>
       </div>
@@ -81,7 +83,9 @@ onBeforeMount(()=> {
       <div class="no-filters__header">
         <h3 class="no-filters__title">Фильтры</h3>
         <div class="no-filters__buttons">
-          <BasicButton label="Искать по отзывам"/>
+          <NuxtLink to="/review-search">
+            <BasicButton label="Искать по отзывам"/>
+          </NuxtLink>
           <span class="no-filters__buttons__show" @click="isShowFilters=true">Развернуть</span>
         </div>
       </div>
