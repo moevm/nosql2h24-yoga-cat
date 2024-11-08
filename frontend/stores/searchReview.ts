@@ -31,8 +31,6 @@ export const useReviewsSearchingStore = defineStore({
                 }
                 const responseData = await response.json()
                 this.exercises = responseData;
-                console.log(responseData);
-                console.log(this.exercises);
             } catch (error) {
                 console.error('Error:', error);
             }

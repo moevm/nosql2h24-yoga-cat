@@ -20,7 +20,6 @@ export const useReviewStore = defineStore({
                     throw new Error(`HTTP error status: ${response.status}`);
                 }
                 const responseData = await response.json();
-                console.log(responseData);
                 this.reviews = responseData;
             } catch (error) {
                 console.error('Error:', error);

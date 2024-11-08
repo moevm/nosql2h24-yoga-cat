@@ -3,12 +3,9 @@ import BasicInput from "~/shared/ui/BasicInput.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import ReviewCard from '~/entities/ReviewCard.vue'
 import SearchIcon from "~/shared/icons/SearchIcon.vue";
-import { useRoute, useRouter } from 'vue-router';
 import {storeToRefs} from "pinia";
 import {useReviewsSearchingStore} from "~/stores/searchReview";
 import {onBeforeMount} from 'vue';
-const route = useRoute();
-const router = useRouter();
 const searchStore = useReviewsSearchingStore()
 const {isLoading, exercises, substring} = storeToRefs(searchStore);
 
@@ -20,6 +17,9 @@ const applyFilters = async() => {
     console.log('error', err);
   }
 }
+onBeforeMount(()=> {
+  searchStore.$reset()
+})
 </script>
 
 <template>
