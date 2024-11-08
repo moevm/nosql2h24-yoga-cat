@@ -102,6 +102,7 @@ export class AppService implements OnModuleInit {
         benefit: JSON.parse(exerciseData.benefit || '[]'),
         properties: JSON.parse(exerciseData.properties || '{}'),
         reviews: JSON.parse(exerciseData.reviews || '[]'),
+        rating: exerciseData.rating,
         img: fileId, // Сохраняем только ID изображения в GridFS
       };
 
@@ -400,6 +401,35 @@ export class AppService implements OnModuleInit {
     }
   }
 
+  // async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
+  //   try {
+  //     const collection = this.db.collection('exercises');
+  //     const review = {
+  //       name: reviewData.name,
+  //       age: reviewData.age,
+  //       rating: reviewData.rating,
+  //       comment: reviewData.comment,
+  //       date: new Date(), // добавляем текущую дату
+  //     };
+  //
+  //     const result = await collection.updateOne(
+  //       { _id: new ObjectId(exerciseId) },
+  //       { $push: { reviews: review } },
+  //     );
+  //
+  //     console.log('Отзыв успешно добавлен к упражнению:', result);
+  //
+  //     if (result.modifiedCount === 0) {
+  //       throw new Error('Упражнение не найдено или не изменено');
+  //     }
+  //
+  //     return review;
+  //   } catch (error) {
+  //     console.error('Ошибка при добавлении отзыва к упражнению:', error);
+  //     throw error;
+  //   }
+  // }
+
   async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
@@ -411,9 +441,24 @@ export class AppService implements OnModuleInit {
         date: new Date(), // добавляем текущую дату
       };
 
+      // Обновляем упражнение, добавляем отзыв и пересчитываем рейтинг
+      const exercise = await collection.findOne({ _id: new ObjectId(exerciseId) });
+      if (!exercise) {
+        throw new Error('Упражнение не найдено');
+      }
+
+      // Считаем новый рейтинг
+      const totalReviews = exercise.reviews ? exercise.reviews.length : 0;
+      const totalRating = exercise.reviews ? exercise.reviews.reduce((acc, review) => acc + review.rating, 0) : 0;
+      const newRating = (totalRating + reviewData.rating) / (totalReviews + 1); // новый средний рейтинг
+
+      // Обновляем упражнение: добавляем новый отзыв и обновляем рейтинг
       const result = await collection.updateOne(
         { _id: new ObjectId(exerciseId) },
-        { $push: { reviews: review } },
+        {
+          $push: { reviews: review },  // Добавляем отзыв в массив
+          $set: { rating: newRating },  // Обновляем рейтинг
+        }
       );
 
       console.log('Отзыв успешно добавлен к упражнению:', result);
@@ -428,6 +473,7 @@ export class AppService implements OnModuleInit {
       throw error;
     }
   }
+
 
 
   async getReviews(id: string): Promise<any[]> {
