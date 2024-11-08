@@ -30,7 +30,8 @@ export const useReviewsSearchingStore = defineStore({
                     throw new Error(`HTTP error status: ${response.status}`);
                 }
                 const responseData = await response.json()
-                this.exercises = responseData.exercises;
+                this.exercises = responseData;
+                console.log(responseData);
                 console.log(this.exercises);
             } catch (error) {
                 console.error('Error:', error);
