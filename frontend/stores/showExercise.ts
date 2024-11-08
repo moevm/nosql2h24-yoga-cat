@@ -65,6 +65,18 @@ export const useExerciseStore = defineStore({
             } catch (error) {
                 console.error('Error:', error);
             }
+        },
+        async removeExercise(id: string) {
+            try {
+                const response = await fetch(`http://localhost:8080/exercises/${id}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     }
 });

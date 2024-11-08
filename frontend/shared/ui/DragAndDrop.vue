@@ -6,7 +6,7 @@ import { useNotifyStore } from '~/stores/notify';
 import ErrorIcon from '~/shared/icons/ErrorIcon.vue';
 
 const props = defineProps({
-  modelValue: { type: [File, null], default: null },
+  modelValue: { type: [File, null, String], default: null },
   fileTypes: { type: Array, default: () => ['.jpg', '.jpeg', '.png'] },
   maxSize: { type: Number, default: 5 },
   disabled: { type: Boolean, default: false },
@@ -67,8 +67,11 @@ const processFile = (files: FileList): void => {
 };
 
 const fileUrl = computed(() => {
-  if (props.modelValue) {
+  if (props.modelValue && props.modelValue instanceof File) {
     return URL.createObjectURL(props.modelValue);
+  }
+  if(props.modelValue){
+    return props.modelValue;
   }
   return undefined;
 });

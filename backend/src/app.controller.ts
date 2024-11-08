@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Delete, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -12,11 +12,6 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  // @Get('/exercises')
-  // async getExercises(): Promise<any[]> {
-  //   console.log("Получение упражнений");
-  //   return await this.appService.getAllExercises();
-  // }
   @Get('/exercises')
   async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any> {
     return await this.appService.getFilteredExercises(filterParams);
@@ -57,11 +52,16 @@ export class AppController {
     return await this.appService.addReviewToExercise(id, review);
   }
 
-
   @Get('/exercises/:id/review')
   async getReviews(@Param('id') id: string): Promise<any> {
     console.log("Получение отзывов упражнения с ID:", id);
     return await this.appService.getReviews(id);
+  }
+
+  @Delete('/exercises/:id')
+  async deleteExercise(@Param('id') id: string): Promise<any> {
+    console.log("Удаление упражнения с ID:", id);
+    return await this.appService.deleteExercise(id);
   }
 
 

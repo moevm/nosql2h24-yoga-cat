@@ -64,7 +64,7 @@ export const useExerciseEditStore = defineStore({
         console.log("texn", this.technique);
         this.contraindications = exerciseData.contraindications || []
         this.benefit = exerciseData.benefit || []
-
+        this.img = exerciseData.img || null
         // Load properties values
         this.properties.spine.forEach((prop) => {
           prop.value = exerciseData.properties.spine.includes(prop.key)
