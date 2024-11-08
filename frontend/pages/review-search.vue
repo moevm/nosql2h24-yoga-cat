@@ -1,26 +1,16 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
-import {onMounted} from 'vue';
 import BasicInput from "~/shared/ui/BasicInput.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import ReviewCard from '~/entities/ReviewCard.vue'
 import SearchIcon from "~/shared/icons/SearchIcon.vue";
+import { useRoute, useRouter } from 'vue-router';
 import {storeToRefs} from "pinia";
 import {useReviewsSearchingStore} from "~/stores/searchReview";
+import {onBeforeMount} from 'vue';
+const route = useRoute();
+const router = useRouter();
 const searchStore = useReviewsSearchingStore()
 const {isLoading, exercises, substring} = storeToRefs(searchStore);
-const type = [
-  {id: 'qwertyu', title: 'Халасана', reviews: [
-      {name: 'Олег', age: '24', rating: 4, comment: 'qwerty', date: '2024-11-06T17:29:56.270Z'},
-      {name: 'Ольга', age: '30', rating: 5, comment: 'test comment', date: '2024-11-06T20:53:16.678Z'},
-      {name: 'Testuser', age: '19', rating: 5, comment: 'iulasndiuskhcankxnc iusnkxcjnoi;c kdnsc ksdnckx kjdnscx dkjnsCCxjzn dizcdiozxc kdnzxcildx', date: '2024-11-07T08:40:00.277Z'},
-      {name: 'qwerty', age: '40', rating: 4, comment: 'qwerty78', date: '2024-11-07T08:42:26.332Z'}
-    ]},
-  {id: 'skdncsdc', title: 'Пинча Маюрасана', reviews: [
-      {name: 'Олег', age: '24', rating: 4, comment: 'qwerty', date: '2024-11-06T17:29:56.270Z'},
-      {name: 'Ольга', age: '30', rating: 5, comment: 'test comment', date: '2024-11-06T20:53:16.678Z'},
-    ]}
-];
 
 const applyFilters = async() => {
   try{
@@ -45,12 +35,14 @@ const applyFilters = async() => {
         </template>
       </BasicButton>
     </div>
-    <div v-if="type.length > 0" class="result_block">
+    <div v-if="exercises.length > 0" class="result_block">
       <h3>Найдено по Вашему запросу</h3>
-      <div v-for="item in type" class="exercise_res">
+      <div v-for="item in exercises" class="exercise_res">
         <div class="header">
           <div class="title">На асану: {{item.title}}</div>
-          <BasicButton class="button" label="ПЕРЕЙТИ"></BasicButton>
+          <NuxtLink class="button" :to="`/catalog/${item.id}`">
+            <BasicButton label="ПЕРЕЙТИ"></BasicButton>
+          </NuxtLink>
         </div>
         <div class="review_content">
           <ReviewCard v-for="el in item.reviews" :name="el.name" :stars="el.rating" :age="el.age" :date="el.date" :comment="el.comment"/>
