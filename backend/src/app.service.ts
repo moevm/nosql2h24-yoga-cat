@@ -297,7 +297,8 @@ export class AppService implements OnModuleInit {
     try {
       const collection = this.db.collection('exercises');
       console.log('Обновление упражнения с ID:', id, exerciseData);
-
+      const exercise = await collection.findOne({ _id: new ObjectId(id) }); // Здесь используем ObjectId
+      console.log('gfefdefs',exercise);
       // Извлекаем поля из Body
       const title = exerciseData.title as string;
       const description = exerciseData.description as string;
@@ -315,7 +316,12 @@ export class AppService implements OnModuleInit {
         const uploadStream = this.gridFSBucket.openUploadStream(file.originalname, {
           contentType: file.mimetype,
         });
-
+        if (exercise.img) {
+          const imageId = exercise.img.toString();
+          const imageObjectId = new ObjectId(imageId);
+          await this.gridFSBucket.delete(imageObjectId);
+          console.log(`Изображение с ID ${imageId} удалено из GridFS`);
+        }
         // Ожидаем завершения загрузки
         await new Promise((resolve, reject) => {
           uploadStream.on('finish', resolve);

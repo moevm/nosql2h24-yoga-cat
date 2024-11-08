@@ -57,7 +57,7 @@ const updateExercise = async () => {
       })
       console.log("Succcccccc");
     }
-    //await router.push('/catalog')
+    await router.push('/catalog')
   } catch (error) {
     notifyStore.addNotification({
       message: 'Ошибка при обновлении асаны',
