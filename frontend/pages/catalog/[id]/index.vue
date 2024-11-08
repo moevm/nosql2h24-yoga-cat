@@ -179,6 +179,7 @@ onMounted(async ()=> {
       padding: 1rem 2.5rem 2rem 2rem;
       background-color: $light-brand;
       border-radius: 5rem;
+      margin-right: 1rem;
       & .contraindications_list {
         list-style-type: "\2715  ";
         line-height: 1.5;
