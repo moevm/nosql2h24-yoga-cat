@@ -24,7 +24,7 @@ export const useReviewsSearchingStore = defineStore({
         async applyFilters() {
             try {
                 const queryString = this.getQueryString();
-                const url = `http://localhost:8080/exercises/reviewfilter?${queryString}`;
+                const url = `http://localhost:8080/reviewfilter?${queryString}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP error status: ${response.status}`);

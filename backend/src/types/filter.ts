@@ -24,3 +24,7 @@ export type FilterParams = {
   stars?: Stars[];
   page?: number;
 }
+
+export type FilterReviews = {
+  substring: string;
+}

@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { BSON, MongoClient, ObjectId, GridFSBucket, GridFSBucketWriteStream} from 'mongodb';
+import { BSON, MongoClient, ObjectId, GridFSBucket, GridFSBucketWriteStream } from 'mongodb';
 import * as fs from 'fs';
-import { FilterParams } from './types/filter';
+import { FilterParams, FilterReviews } from './types/filter';
 import * as path from 'path';
 
 @Injectable()
@@ -21,34 +21,54 @@ export class AppService implements OnModuleInit {
 
   private async importData() {
     try {
-      const data = fs.readFileSync('src/data/yoga.json', 'utf8');
-      const exercises = JSON.parse(data);
       const collection = this.db.collection('exercises');
 
-
+      // Проверка, есть ли уже данные в коллекции
       const existingExercises = await collection.find({}).toArray();
       if (existingExercises.length > 0) {
         console.log('Данные уже существуют в коллекции exercises. Импорт не выполнен.');
         return;
       }
-
-      await collection.insertMany(exercises.exercises);
-      console.log('Данные успешно импортированы');
+      // Импорт данных из файла images.files.bson    console.log('Импорт данных из images.files.bson...');
+      await this.importFiles('src/data/yoga_catalog/images.files.bson', 'images.files');
+      // Импорт данных из файла images.chunks.bson    console.log('Импорт данных из images.chunks.bson...');
+      await this.importFiles('src/data/yoga_catalog/images.chunks.bson', 'images.chunks');
+      // Импорт данных из файла exercises.bson    console.log('Импорт данных из exercises.bson...');
+      await this.importFiles('src/data/yoga_catalog/exercises.bson', 'exercises');
     } catch (error) {
       console.error('Ошибка при импорте данных:', error);
     }
   }
 
-  async getAllExercises(): Promise<any[]> {
+  private async importFiles(filePath: string, collectionName: string) {
     try {
-      const collection = this.db.collection('exercises');
-      const exercises = await collection.find({}).toArray();
-      return exercises;
+      const fileData = fs.readFileSync(filePath);
+      let offset = 0;
+      const documents = [];
+      // Чтение каждого документа из файла
+      while (offset < fileData.length) {
+        const documentSize = fileData.readUInt32LE(offset); // Размер документа
+        const documentBuffer = fileData.slice(offset, offset + documentSize); // Извлечение документа
+        try {
+          const document = BSON.deserialize(documentBuffer); // Десериализация документа
+          documents.push(document);
+        } catch (error) {
+          console.error(`Ошибка при десериализации документа в файле ${filePath}:`, error);
+          break;
+        }
+        offset += documentSize;
+      }
+      if (documents.length > 0) {
+        await this.db.collection(collectionName).insertMany(documents); // Вставка данных в коллекцию      console.log(`Данные успешно импортированы в коллекцию ${collectionName}.`);
+      } else {
+        console.error(`Не удалось десериализовать документы из ${filePath}.`);
+      }
     } catch (error) {
-      console.error('Ошибка при получении упражнений:', error);
-      return [];
+      console.error(`Ошибка при импорте данных из ${filePath}:`, error);
     }
   }
+
+
 
   async addExercise(file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
@@ -154,7 +174,10 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  async getFilteredExercises(filterParams: FilterParams): Promise<{ exercises: any[]; pagination: { totalPages: number, currentPage: number } }> {
+  async getFilteredExercises(filterParams: FilterParams): Promise<{
+    exercises: any[];
+    pagination: { totalPages: number, currentPage: number }
+  }> {
     try {
       const collection = this.db.collection('exercises');
       const query: any[] = [];
@@ -204,7 +227,7 @@ export class AppService implements OnModuleInit {
           const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
           if (imageBuffer) {
             //exercise.image = imageBuffer.toString('base64'); // Преобразуем изображение в base64
-            exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+            exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
 
           }
         }
@@ -221,10 +244,59 @@ export class AppService implements OnModuleInit {
   }
 
 
+  async getReviewsByText(filterParams: FilterReviews): Promise<any[]> {
+    try {
+      if( filterParams.substring==''){
+        return [];
+      }
+      const collection = this.db.collection('exercises');
+      const query = {
+        $match: {
+          reviews: {
+            $elemMatch: {
+              comment: { $regex: filterParams.substring, $options: 'i' },
+            },
+          },
+        },
+      };
+
+      const pipeline = [
+        query,
+        {
+          $unwind: '$reviews',
+        },
+        {
+          $match: {
+            'reviews.comment': { $regex: filterParams.substring, $options: 'i' },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            title: { $first: '$title' },
+            reviews: { $push: '$reviews' },
+          },
+        },
+      ];
+
+      const result = await collection.aggregate(pipeline).toArray();
+
+      return result.map((exercise) => ({
+        id: exercise._id.toString(),
+        title: exercise.title,
+        reviews: exercise.reviews,
+      }));
+    } catch (error) {
+      console.error('Ошибка при получении отзывов:', error);
+      return [];
+    }
+  }
+
+
   async updateExercise(id: string, file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
-      console.log("Обновление упражнения с ID:", id, exerciseData);
+      console.log('Обновление упражнения с ID:', id, exerciseData);
 
       // Извлекаем поля из Body
       const title = exerciseData.title as string;
@@ -275,7 +347,7 @@ export class AppService implements OnModuleInit {
       // Обновляем упражнение в коллекции 'exercises'
       const result = await collection.updateOne(
         { _id: new ObjectId(id) }, // Фильтр для поиска по ID
-        { $set: updatedExercise } // Обновляем только те поля, которые есть в updatedExercise
+        { $set: updatedExercise }, // Обновляем только те поля, которые есть в updatedExercise
       );
 
       console.log('Упражнение успешно обновлено:', result);
@@ -300,7 +372,6 @@ export class AppService implements OnModuleInit {
       throw error;
     }
   }
-
 
 
   async getExerciseById(id: string): Promise<any> {
@@ -331,12 +402,12 @@ export class AppService implements OnModuleInit {
         age: reviewData.age,
         rating: reviewData.rating,
         comment: reviewData.comment,
-        date: new Date() // добавляем текущую дату
+        date: new Date(), // добавляем текущую дату
       };
 
       const result = await collection.updateOne(
         { _id: new ObjectId(exerciseId) },
-        { $push: { reviews: review } }
+        { $push: { reviews: review } },
       );
 
       console.log('Отзыв успешно добавлен к упражнению:', result);
@@ -358,7 +429,7 @@ export class AppService implements OnModuleInit {
       const collection = this.db.collection('exercises');
       const exercise = await collection.findOne(
         { _id: new ObjectId(id) },
-        { projection: { reviews: 1 } } // Выбираем только поле `reviews`
+        { projection: { reviews: 1 } }, // Выбираем только поле `reviews`
       );
 
       if (!exercise) {
@@ -366,7 +437,7 @@ export class AppService implements OnModuleInit {
         return [];
       }
 
-      console.log("Полученные отзывы:", exercise.reviews);
+      console.log('Полученные отзывы:', exercise.reviews);
       return exercise.reviews || [];
     } catch (error) {
       console.error('Ошибка при получении отзывов:', error);
@@ -378,24 +449,21 @@ export class AppService implements OnModuleInit {
   async deleteExercise(id: string): Promise<any> {
     try {
       const collection = this.db.collection('exercises');
-
-      // Проверяем, существует ли упражнение с таким ID
       const exercise = await collection.findOne({ _id: new ObjectId(id) });
       if (!exercise) {
         throw new Error('Упражнение не найдено');
       }
 
-      // Если упражнение имеет изображение, удаляем его из GridFS
       if (exercise.img) {
         const imageId = exercise.img.toString();
         const imageObjectId = new ObjectId(imageId);
-        await this.gridFSBucket.delete(imageObjectId); // Удаляем файл из GridFS
+        await this.gridFSBucket.delete(imageObjectId);
         console.log(`Изображение с ID ${imageId} удалено из GridFS`);
       }
 
-      // Удаляем упражнение из коллекции
       await collection.deleteOne({ _id: new ObjectId(id) });
       console.log(`Упражнение с ID ${id} удалено из базы данных`);
+
 
       return { message: `Упражнение с ID ${id} успешно удалено` };
     } catch (error) {

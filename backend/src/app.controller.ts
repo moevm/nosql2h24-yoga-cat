@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Delete, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
-import { FilterParams } from './types/filter';
+import { FilterParams, FilterReviews } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller()
@@ -62,6 +62,12 @@ export class AppController {
   async deleteExercise(@Param('id') id: string): Promise<any> {
     console.log("Удаление упражнения с ID:", id);
     return await this.appService.deleteExercise(id);
+  }
+
+  @Get('/reviewfilter')
+  async getReviewsByText(@Query() filterParams: FilterReviews): Promise<any> {
+    console.log("fefefe");
+    return await this.appService.getReviewsByText(filterParams);
   }
 
 
