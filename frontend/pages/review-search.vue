@@ -5,6 +5,10 @@ import BasicInput from "~/shared/ui/BasicInput.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
 import ReviewCard from '~/entities/ReviewCard.vue'
 import SearchIcon from "~/shared/icons/SearchIcon.vue";
+import {storeToRefs} from "pinia";
+import {useReviewsSearchingStore} from "~/stores/searchReview";
+const searchStore = useReviewsSearchingStore()
+const {isLoading, exercises, substring} = storeToRefs(searchStore);
 const type = [
   {id: 'qwertyu', title: 'Халасана', reviews: [
       {name: 'Олег', age: '24', rating: 4, comment: 'qwerty', date: '2024-11-06T17:29:56.270Z'},
@@ -17,14 +21,23 @@ const type = [
       {name: 'Ольга', age: '30', rating: 5, comment: 'test comment', date: '2024-11-06T20:53:16.678Z'},
     ]}
 ];
+
+const applyFilters = async() => {
+  try{
+    await searchStore.applyFilters();
+  }
+  catch(err){
+    console.log('error', err);
+  }
+}
 </script>
 
 <template>
   <div class="wrapper">
     <h1>Поиск асаны по отзывам</h1>
     <div class="search_bar">
-      <BasicInput type="text" placeholder="Текст отзыва" class="text_input"/>
-      <BasicButton class="search_btn">
+      <BasicInput type="text" v-model="substring" placeholder="Текст отзыва" class="text_input"/>
+      <BasicButton class="search_btn" @click="applyFilters">
         <template #after>
           <span class="after">
             <SearchIcon/>
