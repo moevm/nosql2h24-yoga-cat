@@ -166,6 +166,7 @@ export class AppService implements OnModuleInit {
         query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
 
+
       if (filterParams.spine && filterParams.spine.length > 0) {
         query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine : [filterParams.spine] } });
       }
@@ -183,11 +184,13 @@ export class AppService implements OnModuleInit {
       }
 
       if (filterParams.stars && filterParams.stars.length > 0) {
-        query.push({ 'properties.stars': { $in: Array.isArray(filterParams.stars) ? filterParams.stars : [filterParams.stars] } });
+        console.log("fttftft",filterParams.stars, typeof filterParams.stars);
+        console.log("aaaft",filterParams.stars, typeof filterParams.stars);
+        query.push({ 'rating': { $in: Array.isArray(filterParams.stars) ? +filterParams.stars : [+filterParams.stars] } });
       }
 
       const finalQuery = { $or: [...query] };
-
+      console.log("quer", finalQuery, query);
       const page = filterParams.page || 1;
       const limit = 6;
       const skip = (page - 1) * limit;
@@ -199,7 +202,7 @@ export class AppService implements OnModuleInit {
         .skip(skip)
         .limit(limit)
         .toArray();
-
+      console.log("jsjs", exercises);
       // Добавление изображения в каждый элемент
       for (let exercise of exercises) {
         if (exercise.img) {
