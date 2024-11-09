@@ -7,6 +7,7 @@ import CheckboxesField from '~/entities/CheckboxesField.vue';
 import { useCatalogStore } from '~/stores/catalog';
 import ExerciseCard from '~/entities/ExerciseCard.vue';
 import Pagination from '~/entities/Pagination.vue';
+import SadIcon from '~/shared/icons/SadIcon.vue';
 const catalogStore = useCatalogStore()
 const {properties, isLoading, exercises, pagination} = storeToRefs(catalogStore);
 const isShowFilters = ref(false)
@@ -100,8 +101,12 @@ onBeforeMount(()=> {
           <BasicButton label="Добавить асану"/>
         </NuxtLink>
       </div>
-      <div class="result__body">
+      <div class="result__body" v-if="exercises.length > 0">
         <ExerciseCard v-for="(item) in exercises"  :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
+      </div>
+      <div class="empty" v-else-if="!isLoading">
+        <SadIcon width="100" height="100"/>
+        <h3 class="empty__text">По вашему запросу ничего не найдено</h3>
       </div>
       <Pagination
         class="pagination"
@@ -115,6 +120,17 @@ onBeforeMount(()=> {
 </template>
 
 <style scoped lang="scss">
+.empty{
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  row-gap: 2rem;
+  &__text{
+    font-size: 36px;
+  }
+}
 .wrapper{
   display: flex;
   flex-direction: column;

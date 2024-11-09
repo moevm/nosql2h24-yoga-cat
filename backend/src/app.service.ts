@@ -379,6 +379,24 @@ export class AppService implements OnModuleInit {
     }
   }
 
+  async getAllExercises(): Promise<any[]> {
+    try {
+      const collection = this.db.collection('exercises');
+      const allExercises = await collection.find().toArray();
+      for (let exercise of allExercises) {
+        if (exercise.img) {
+          const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
+          if (imageBuffer) {
+            exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+          }
+        }
+      }
+      return allExercises;
+    } catch (error) {
+      console.error('Ошибка при получении всех упражнений:', error);
+      return [];
+    }
+  }
 
   async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
     try {

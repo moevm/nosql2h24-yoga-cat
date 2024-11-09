@@ -77,18 +77,17 @@ const sendReview = async () => {
 }
 onMounted(async ()=> {
   try {
-    const url = `http://localhost:8080/exercises`;
+    const url = `http://localhost:8080/exercisesAll`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error status: ${response.status}`);
     }
     const responseData = await response.json()
-    const selectedAsana = responseData.exercises.find((ex: Exercise)=> ex._id===id)
+    const selectedAsana = responseData.find((ex: Exercise)=> ex._id===id)
     if(selectedAsana){
       data.asanaTitle = selectedAsana.title;
     }
-    console.log('selectedAsana', selectedAsana);
-    selectOptions.value = responseData.exercises.map((el: Exercise)=> ({id: el._id, value: el.title}))
+    selectOptions.value = responseData.map((el: Exercise)=> ({id: el._id, value: el.title}))
   } catch (error) {
     console.error('Error:', error);
   }

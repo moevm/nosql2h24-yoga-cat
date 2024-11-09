@@ -16,7 +16,10 @@ export class AppController {
   async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any> {
     return await this.appService.getFilteredExercises(filterParams);
   }
-
+  @Get('/exercisesAll')
+  async getAllExercises(): Promise<any> {
+    return await this.appService.getAllExercises();
+  }
   @Get('/exercises/:id')
   async getExercise(@Param('id') id: string): Promise<any> {
     console.log("Получение упражнения с ID:", id);
