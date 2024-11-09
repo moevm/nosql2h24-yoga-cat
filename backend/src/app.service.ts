@@ -428,10 +428,34 @@ export class AppService implements OnModuleInit {
   async getPopular(): Promise<any[]> {
     try {
       const collection = this.db.collection('exercises');
-      const popularExercises = await collection.find()
-        .sort({ rating: -1 }) // Сортируем по полю rating в порядке убывания
-        .limit(6) // Возвращаем только 6 упражнений
-        .toArray();
+      const popularExercises = await collection.aggregate([
+        {
+          $addFields: {
+            ratingInt: { $toInt: "$rating" }
+          }
+        },
+        {
+          $sort: { ratingInt: -1 }
+        },
+        {
+          $limit: 6
+        },
+        {
+          $project: {
+            _id: 1,
+            img: 1,
+            title: 1,
+            description: 1,
+            technique: 1,
+            contraindications: 1,
+            benefit: 1,
+            properties: 1,
+            reviews: 1,
+            rating: 1,
+            // другие поля, которые вы хотите вернуть
+          }
+        }
+      ]).toArray();
 
       // Добавление изображения в каждый элемент
       for (let exercise of popularExercises) {

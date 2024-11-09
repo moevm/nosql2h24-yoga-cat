@@ -146,7 +146,7 @@ onMounted(async ()=> {
       }
     }
     img{
-      object-fit: cover;
+      object-fit: contain;
       height: 500px;
       width: 500px;
       border-radius: 1.8rem;

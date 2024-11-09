@@ -98,7 +98,18 @@ export const useCatalogStore = defineStore({
 
       return searchParams.toString();
     },
-
+    async getPopular(){
+      try {
+        const url = `http://localhost:8080/popular`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error status: ${response.status}`);
+        }
+        this.exercises = await response.json();
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
     resetFilters() {
       const filterKeys: (keyof Properties)[] = [
         'spine',

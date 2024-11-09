@@ -1,6 +1,24 @@
 <script setup lang="ts">
 import BasicButton from "~/shared/ui/BasicButton.vue";
 import ExerciseCard from "~/entities/ExerciseCard.vue";
+import {storeToRefs} from "pinia";
+import { onMounted, ref } from 'vue';
+import { useCatalogStore } from '~/stores/catalog';
+const catalogStore = useCatalogStore()
+const {exercises} = storeToRefs(catalogStore)
+const isLoading = ref(false)
+onMounted(async()=> {
+  try{
+    isLoading.value = true;
+    await catalogStore.getPopular()
+  }
+  catch(err){
+    console.log('err', err);
+  }
+  finally{
+    isLoading.value = false
+  }
+})
 </script>
 
 <template>
@@ -20,13 +38,44 @@ import ExerciseCard from "~/entities/ExerciseCard.vue";
         </NuxtLink>
       </div>
       <div class="content">
-        <ExerciseCard img="https://thecity.m24.ru/b/d/SYketSivfYw9L_TObLLBFlFNHBpuaXnwmJxNbycGshjv55OD3HWFWh2pL8EsPwl5DpSHzm95vRzNbdeHauL5EWcJ5w9e=Q_sEnzWUZFpc7IFUmL-h6A.jpg" name="Халасана" description="Халасана — перевод с санскрита, принципы травмобезопасности и польза от асаны. Что будет, если выполнять позу плуга регулярно перевод с санскрита, принципы травмобезопасности и польза от асаны. перевод с санскрита, принципы травмобезопасности и польза от асаны." :stars="4" :id="4"/>
+        <ExerciseCard v-for="(item) in exercises"  :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
       </div>
+    </div>
+    <div v-if="isLoading" class="loader-overlay">
+      <div class="loader"></div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  height: 100dvh;
+}
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid $brand;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  animation: spin 1s linear infinite;
+}
+.content{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 2.5rem;
+  -moz-column-gap: 0.7rem;
+  column-gap: 0.7rem;
+}
 .wrapper{
   display: flex;
   flex-direction: column;
