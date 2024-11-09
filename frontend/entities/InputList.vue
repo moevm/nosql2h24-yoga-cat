@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, watch} from 'vue'
 import {toRef} from 'vue'
 import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
 type Rule = (value: (string|undefined)[]) => true | string
@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
   initialCount: 3,
   rules: undefined,
 });
-const count = toRef(props.initialCount)
+const count = ref(props.initialCount)
 const model = defineModel<string[]>({ default: [] })
 const addInput = () => {
   count.value++
@@ -39,6 +39,9 @@ const validate = () => {
 defineExpose({
   validate
 })
+watch(() => props.initialCount, (newVal) => {
+  count.value = newVal;
+}, { immediate: true });
 </script>
 
 <template>

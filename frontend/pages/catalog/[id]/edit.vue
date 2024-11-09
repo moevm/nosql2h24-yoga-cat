@@ -82,8 +82,8 @@ onMounted(async () => {
       <BasicInput ref="titleInput" type="text" v-model="title" placeholder="Название" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']" />
       <BasicInput ref="descriptionInput" type="text" v-model="description" placeholder="Описание" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']" />
       <BasicTextarea ref="techniqueTextarea" v-model="technique" placeholder="Техника выполнения" :required="true" :rules="[(val:string | number) => `${val}`.length>30 || 'Поле должно содержать более 30 символов']" />
-      <InputList ref="contraindicationsInputList" v-model="contraindications" title="Противопоказания" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
-      <InputList ref="benefitInputList" v-model="benefit" title="Польза" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
+      <InputList ref="contraindicationsInputList" :initial-count="contraindications.length" v-model="contraindications" title="Противопоказания" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
+      <InputList ref="benefitInputList" :initial-count="benefit.length" v-model="benefit" title="Польза" :required="true" :rules="[(val: (string|undefined)[])=> val.some((elem)=> (elem !== undefined && elem.length>0) )|| 'Введите хотя бы одно значение']" />
       <CheckboxesField :properties="properties" theme="purple" />
       <BasicButton label="Сохранить изменения" theme="purple" class="add-button" @click="updateExercise" />
     </FormWrapper>

@@ -129,6 +129,13 @@ defineExpose({
     color: $brand;
 
     &.active {
+      padding-top: 5px;
+      height: 22px;
+      padding-left: 0;
+      margin: -4px 15px;
+      background-color: #ECECEC;
+      width: 95%;
+      border-radius: 40px;
       top: 0.4rem;
       font-size: 12px;
     }

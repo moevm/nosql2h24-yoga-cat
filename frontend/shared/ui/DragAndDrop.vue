@@ -257,6 +257,7 @@ defineExpose({
     color: $brand;
   }
   &__text--mini{
+    pointer-events: none;
     color: $brand;
     font-size: 12px;
   }

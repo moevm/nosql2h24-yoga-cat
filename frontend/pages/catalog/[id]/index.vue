@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
-import {onMounted} from 'vue';
+import {onMounted, ref, computed} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useExerciseStore } from '~/stores/showExercise';
 import { useReviewStore } from '~/stores/showReviews';
@@ -44,7 +44,7 @@ onMounted(async ()=> {
     </div>
     <div class="description_block">
       <div class="stars_description">
-        <div class="stars"><StarIcon v-for="star in 5" :key="star" width="50" height="50"/></div>
+        <div class="stars"><StarIcon v-for="star in (+exercise.rating || 0) " :key="star" width="50" height="50"/></div>
         <div class="description">
           <h3>Описание</h3>
           <br>

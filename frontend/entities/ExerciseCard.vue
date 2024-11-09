@@ -55,7 +55,7 @@ defineProps<CardInfo>()
   flex-direction: column;
   background-color: $light-brand;
   img{
-    object-fit: cover;
+    object-fit: contain;
     height: 65%;
     width: 100%;
     border-radius: 1.8rem;
@@ -66,6 +66,8 @@ defineProps<CardInfo>()
     padding: 0.8rem;
 
     &__title {
+      white-space: nowrap;
+      text-overflow: ellipsis;
       overflow: hidden;
       max-width: 100%;
       display: inline-block;

@@ -101,7 +101,7 @@ onBeforeMount(()=> {
         </NuxtLink>
       </div>
       <div class="result__body">
-        <ExerciseCard v-for="(item) in exercises" :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="5"/>
+        <ExerciseCard v-for="(item) in exercises"  :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
       </div>
       <Pagination
         class="pagination"
