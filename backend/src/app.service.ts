@@ -69,7 +69,6 @@ export class AppService implements OnModuleInit {
   }
 
 
-
   async addExercise(file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
       // Проверка на наличие файла
@@ -153,27 +152,6 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  private async saveExerciseToFile(exercise: any): Promise<void> {
-    try {
-      const filePath = path.resolve(__dirname, '../src/data/yoga.bson');
-      let exercises = [];
-
-      if (fs.existsSync(filePath)) {
-        const existingData = fs.readFileSync(filePath);
-        exercises = existingData.length ? BSON.deserialize(existingData).exercises || [] : [];
-      }
-
-      // Добавляем новое упражнение в массив упражнений
-      exercises.push(exercise);
-
-      // Сериализация и запись данных обратно в BSON файл
-      const bsonData = BSON.serialize({ exercises });
-      fs.writeFileSync(filePath, bsonData);
-      console.log('Новое упражнение успешно сохранено в BSON файл.');
-    } catch (error) {
-      console.error('Ошибка при записи упражнения в BSON файл:', error);
-    }
-  }
 
   async getFilteredExercises(filterParams: FilterParams): Promise<{
     exercises: any[];
@@ -247,7 +225,7 @@ export class AppService implements OnModuleInit {
 
   async getReviewsByText(filterParams: FilterReviews): Promise<any[]> {
     try {
-      if( filterParams.substring==''){
+      if (filterParams.substring == '') {
         return [];
       }
       const collection = this.db.collection('exercises');
@@ -299,7 +277,7 @@ export class AppService implements OnModuleInit {
       const collection = this.db.collection('exercises');
       console.log('Обновление упражнения с ID:', id, exerciseData);
       const exercise = await collection.findOne({ _id: new ObjectId(id) }); // Здесь используем ObjectId
-      console.log('gfefdefs',exercise);
+      console.log('gfefdefs', exercise);
       // Извлекаем поля из Body
       const title = exerciseData.title as string;
       const description = exerciseData.description as string;
@@ -401,34 +379,6 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  // async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
-  //   try {
-  //     const collection = this.db.collection('exercises');
-  //     const review = {
-  //       name: reviewData.name,
-  //       age: reviewData.age,
-  //       rating: reviewData.rating,
-  //       comment: reviewData.comment,
-  //       date: new Date(), // добавляем текущую дату
-  //     };
-  //
-  //     const result = await collection.updateOne(
-  //       { _id: new ObjectId(exerciseId) },
-  //       { $push: { reviews: review } },
-  //     );
-  //
-  //     console.log('Отзыв успешно добавлен к упражнению:', result);
-  //
-  //     if (result.modifiedCount === 0) {
-  //       throw new Error('Упражнение не найдено или не изменено');
-  //     }
-  //
-  //     return review;
-  //   } catch (error) {
-  //     console.error('Ошибка при добавлении отзыва к упражнению:', error);
-  //     throw error;
-  //   }
-  // }
 
   async addReviewToExercise(exerciseId: string, reviewData: any): Promise<any> {
     try {
@@ -458,7 +408,7 @@ export class AppService implements OnModuleInit {
         {
           $push: { reviews: review },  // Добавляем отзыв в массив
           $set: { rating: newRating },  // Обновляем рейтинг
-        }
+        },
       );
 
       console.log('Отзыв успешно добавлен к упражнению:', result);
@@ -475,6 +425,31 @@ export class AppService implements OnModuleInit {
   }
 
 
+  async getPopular(): Promise<any[]> {
+    try {
+      const collection = this.db.collection('exercises');
+      const popularExercises = await collection.find()
+        .sort({ rating: -1 }) // Сортируем по полю rating в порядке убывания
+        .limit(6) // Возвращаем только 6 упражнений
+        .toArray();
+
+      // Добавление изображения в каждый элемент
+      for (let exercise of popularExercises) {
+        if (exercise.img) {
+          const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
+          if (imageBuffer) {
+            // Преобразуем изображение в base64 и добавляем префикс для изображения
+            exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+          }
+        }
+      }
+
+      return popularExercises;
+    } catch (error) {
+      console.error('Ошибка при получении популярных упражнений:', error);
+      return [];
+    }
+  }
 
   async getReviews(id: string): Promise<any[]> {
     try {

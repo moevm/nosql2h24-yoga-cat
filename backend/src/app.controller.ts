@@ -66,9 +66,13 @@ export class AppController {
 
   @Get('/reviewfilter')
   async getReviewsByText(@Query() filterParams: FilterReviews): Promise<any> {
-    console.log("fefefe");
     return await this.appService.getReviewsByText(filterParams);
   }
 
+
+  @Get('/popular')
+  async getPopular(): Promise<any> {
+    return await this.appService.getPopular();
+  }
 
 }
