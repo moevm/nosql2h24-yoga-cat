@@ -22,7 +22,6 @@ export class AppController {
   }
   @Get('/exercises/:id')
   async getExercise(@Param('id') id: string): Promise<any> {
-    console.log("Получение упражнения с ID:", id);
     return await this.appService.getExerciseById(id);
   }
 

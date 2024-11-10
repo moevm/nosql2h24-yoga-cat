@@ -27,6 +27,10 @@ const removeAsana = async () => {
   isOpenRemoveWindow.value = false;
   await router.push('/catalog')
 }
+// const toInt = (value : any) => {
+//   if( typeof value === 'number') return value
+//   else return 0
+// }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
   await reviewsStore.getReviews(asanaId);

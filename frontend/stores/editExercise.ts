@@ -53,15 +53,12 @@ export const useExerciseEditStore = defineStore({
     async loadExerciseData(id: string) {
       this.isLoading = true
       try {
-        console.log("aaaaaaaa");
         const response = await fetch(`http://localhost:8080/exercises/${id}`)
         if (!response.ok) throw new Error(`Ошибка загрузки: ${response.statusText}`)
         const exerciseData = await response.json()
         this.title = exerciseData.title
-        console.log("tot", this.title);
         this.description = exerciseData.description
         this.technique = exerciseData.technique
-        console.log("texn", this.technique);
         this.contraindications = exerciseData.contraindications || []
         this.benefit = exerciseData.benefit || []
         this.img = exerciseData.img || null

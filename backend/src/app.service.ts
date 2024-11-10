@@ -184,13 +184,10 @@ export class AppService implements OnModuleInit {
       }
 
       if (filterParams.stars && filterParams.stars.length > 0) {
-        console.log("fttftft",filterParams.stars, typeof filterParams.stars);
-        console.log("aaaft",filterParams.stars, typeof filterParams.stars);
-        query.push({ 'rating': { $in: Array.isArray(filterParams.stars) ? +filterParams.stars : [+filterParams.stars] } });
+        query.push({ 'rating': { $in: Array.isArray(filterParams.stars) ? filterParams.stars.map((el)=> +el) : [+filterParams.stars] } });
       }
 
       const finalQuery = { $or: [...query] };
-      console.log("quer", finalQuery, query);
       const page = filterParams.page || 1;
       const limit = 6;
       const skip = (page - 1) * limit;
@@ -341,7 +338,7 @@ export class AppService implements OnModuleInit {
       console.log('Упражнение успешно обновлено:', result);
 
       if (result.modifiedCount === 0) {
-        throw new Error('Упражнение не найдено или не изменено');
+        return;
       }
 
       // Получаем обновленное упражнение с новым изображением
@@ -421,7 +418,7 @@ export class AppService implements OnModuleInit {
       // Считаем новый рейтинг
       const totalReviews = exercise.reviews ? exercise.reviews.length : 0;
       const totalRating = exercise.reviews ? exercise.reviews.reduce((acc, review) => acc + review.rating, 0) : 0;
-      const newRating = (totalRating + reviewData.rating) / (totalReviews + 1); // новый средний рейтинг
+      const newRating = Math.round((totalRating + reviewData.rating) / (totalReviews + 1)); // новый средний рейтинг
 
       // Обновляем упражнение: добавляем новый отзыв и обновляем рейтинг
       const result = await collection.updateOne(
