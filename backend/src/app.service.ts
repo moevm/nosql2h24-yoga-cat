@@ -6,7 +6,7 @@ import * as path from 'path';
 
 @Injectable()
 export class AppService implements OnModuleInit {
-  private readonly uri = 'mongodb://127.0.0.1:27017';
+  private readonly uri = 'mongodb://db:27017';
   private db: any;
   private gridFSBucket: GridFSBucket;
 
