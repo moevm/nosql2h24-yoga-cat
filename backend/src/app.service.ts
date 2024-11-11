@@ -6,7 +6,8 @@ import * as path from 'path';
 
 @Injectable()
 export class AppService implements OnModuleInit {
-  private readonly uri = 'mongodb://db:27017';
+  // private readonly uri = 'mongodb://db:27017';
+  private readonly uri = 'mongodb://127.0.0.1:27017';
   private db: any;
   private gridFSBucket: GridFSBucket;
 
@@ -91,7 +92,7 @@ export class AppService implements OnModuleInit {
 
       // Получаем ID файла в GridFS
       const fileId = uploadStream.id;
-
+      const date = new Date();
       // Создаем объект для добавления в коллекцию 'exercises'
       const exercise = {
         title: exerciseData.title,
@@ -103,6 +104,8 @@ export class AppService implements OnModuleInit {
         reviews: JSON.parse(exerciseData.reviews || '[]'),
         rating: exerciseData.rating,
         img: fileId, // Сохраняем только ID изображения в GridFS
+        dateAdd: date,
+        dateUpdate: date,
       };
 
       // Вставляем упражнение в коллекцию 'exercises'
@@ -323,7 +326,7 @@ export class AppService implements OnModuleInit {
       if (benefit) updatedExercise.benefit = benefit;
       if (properties) updatedExercise.properties = properties;
       if (imgId) updatedExercise.img = imgId;
-
+      updatedExercise.dateUpdate = new Date();
       // Проверяем, есть ли что-то для обновления
       if (Object.keys(updatedExercise).length === 0) {
         throw new Error('Нет данных для обновления');
