@@ -30,6 +30,8 @@ export type Exercise = {
   contraindications: string[],
   benefit: string[],
   rating: number,
+  dateAdd: string,
+  dateUpdate: string,
   properties: Properties
 }
 export type Review = {

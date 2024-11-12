@@ -38,7 +38,7 @@ onMounted(async()=> {
         </NuxtLink>
       </div>
       <div class="content">
-        <ExerciseCard v-for="(item) in exercises"  :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
+        <ExerciseCard v-for="(item) in exercises"  :dateAdd="item.dateAdd" :dateUpdate="item.dateUpdate" :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
       </div>
     </div>
     <div v-if="isLoading" class="loader-overlay">
