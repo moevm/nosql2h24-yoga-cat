@@ -7,8 +7,23 @@ export type CardInfo = {
   stars: number,
   name: string,
   description: string,
+  dateUpdate: any,
+  dateAdd: any,
 }
+
 defineProps<CardInfo>()
+function formatDate(date2: string) {
+  const date = new Date(date2);
+  if(date){
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString().slice(2); // берем последние 2 цифры года
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}.${month}.${year} - ${hours}:${minutes}`;
+  }
+
+}
 </script>
 
 <template>
@@ -22,6 +37,10 @@ defineProps<CardInfo>()
       <div class="stars-block">
         <StarIcon v-for="star in stars" :key="star"/>
       </div>
+      <div class="date-block">
+        <div class="date-update" v-if="dateAdd">Создано: {{formatDate(dateAdd)}}</div>
+        <div class="date-create" v-if="dateUpdate">Обновлено: {{formatDate(dateUpdate)}}</div>
+      </div>
     </div>
     <NuxtLink :to="`catalog/${id}`">
       <BasicButton label="Подробнее" class="more-info-button"/>
@@ -32,6 +51,11 @@ defineProps<CardInfo>()
 </template>
 
 <style scoped lang="scss">
+.date-block{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
 .wrapper-card{
   width: fit-content;
   display: flex;
@@ -46,7 +70,7 @@ defineProps<CardInfo>()
 }
 .wrapper-info{
   width: 300px;
-  padding-top: 40px;
+  padding-top: 60px;
   height: 400px;
   position: relative;
   max-width: 21rem;
@@ -93,9 +117,19 @@ defineProps<CardInfo>()
     flex-direction: row-reverse;
     gap: 0.125rem;
     display: flex;
-    top: 0.625rem;
+    top: 0.8rem;
     right: 1rem;
     position: absolute;
+  }
+  .date-block{
+    position: absolute;
+    top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px;
+    font-size: 12px;
+    color: $brand;
+    left: 1rem;
   }
 }
 </style>

@@ -102,7 +102,7 @@ onBeforeMount(()=> {
         </NuxtLink>
       </div>
       <div class="result__body" v-if="exercises.length > 0">
-        <ExerciseCard v-for="(item) in exercises"  :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
+        <ExerciseCard v-for="(item) in exercises"  :date-add="item.dateAdd" :date-update="item.dateUpdate" :key="item.title" :id="item._id" :img="item.img" :name="item.title" :description="item.description" :stars="+item.rating || 0"/>
       </div>
       <div class="empty" v-else-if="!isLoading">
         <SadIcon width="100" height="100"/>

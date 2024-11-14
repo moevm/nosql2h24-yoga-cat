@@ -156,7 +156,7 @@ export class AppService implements OnModuleInit {
 
       // Получаем ID файла в GridFS
       const fileId = uploadStream.id;
-      const date = new Date();
+      const date = new Date()
       // Создаем объект для добавления в коллекцию 'exercises'
       const exercise = {
         title: exerciseData.title,
