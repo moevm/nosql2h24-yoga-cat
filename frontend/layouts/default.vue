@@ -7,10 +7,58 @@ import BasicButton from '~/shared/ui/BasicButton.vue';
 const route = useRoute();
 const isHomePage = computed(() => route.path === '/');
 const isReviewPage = computed(() => route.path === '/feedback');
-const exportData = async ( )=> {
-  const url = `http://localhost:8080/export`;
-   await fetch(url);
+const exportData = () => {
+  const urlFiles = `http://localhost:8080/exportImageFiles`;
+  const urlChunks = `http://localhost:8080/exportImageChunks`;
+  const urlExercises = `http://localhost:8080/exportExercises`;
+
+  const fetchFiles = fetch(urlFiles).then((response) => {
+    return response.blob();
+  });
+
+  const fetchChunks = fetch(urlChunks).then((response) => {
+    return response.blob();
+  });
+
+  const fetchExercises = fetch(urlExercises).then((response) => {
+    return response.blob();
+  });
+
+  Promise.all([fetchFiles, fetchChunks, fetchExercises])
+    .then(([fileBlob, chunkBlob, exercisesBlob]) => {
+      const urlFile = URL.createObjectURL(fileBlob);
+      const linkFile = document.createElement('a');
+      linkFile.href = urlFile;
+      linkFile.download = 'imageFiles.bson';
+      document.body.appendChild(linkFile);
+      linkFile.click();
+      linkFile.remove();
+      URL.revokeObjectURL(urlFile);
+
+      const urlChunk = URL.createObjectURL(chunkBlob);
+      const linkChunk = document.createElement('a');
+      linkChunk.href = urlChunk;
+      linkChunk.download = 'imageChunks.bson';
+      document.body.appendChild(linkChunk);
+      linkChunk.click();
+      linkChunk.remove();
+      URL.revokeObjectURL(urlChunk);
+
+      const urlExercises = URL.createObjectURL(exercisesBlob);
+      const linkExercises = document.createElement('a');
+      linkExercises.href = urlExercises;
+      linkExercises.download = 'exercises.bson';
+      document.body.appendChild(linkExercises);
+      linkExercises.click();
+      linkExercises.remove();
+      URL.revokeObjectURL(urlExercises);
+    })
+    .catch((error) => {
+      console.error('Ошибка при загрузке файлов:', error);
+    });
 }
+
+
 </script>
 
 <template>

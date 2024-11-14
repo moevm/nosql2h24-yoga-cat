@@ -19,86 +19,81 @@ export class AppService implements OnModuleInit {
     await this.importData();
   }
 
+  async getImagesFiles(): Promise<string> {
+    const collections = await this.db.listCollections().toArray();
+    for (const collection of collections) {
+      await this.db.collection(collection.name).find().toArray();
+    }
+    const collection = await this.db.collection('images.files');
+    const cursor = await collection.find();
+    const bsonData = await cursor.toArray();
+    const fs = require('fs');
+    const path = require('path');
+    const BSON = require('bson');
+    const filePath = path.join(__dirname, '..', 'collectionFiles.bson');
+    const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
+    fs.writeFileSync(filePath, '');
+    bsonBuffer.forEach((buffer) => {
+      fs.appendFileSync(filePath, buffer);
+    });
+    return filePath;
+  }
 
-  // async getImagesChunks() {
-  //   const collections = await this.db.listCollections().toArray();
-  //   for (const collection of collections) {
-  //     const data = await this.db.collection(collection.name).find().toArray();
-  //   }
-  //   const collection = await this.db.collection('images.files');
-  //
-  //   const cursor = await collection.find();
-  //   const bsonData = await cursor.toArray();
-  //
-  //   const fs = require('fs');
-  //   const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
-  //
-  //   bsonBuffer.forEach((buffer) => {
-  //     fs.appendFileSync('collection.bson', buffer);
-  //   });
-  //
-  // }
 
   async getImagesChunks(): Promise<string> {
     const collections = await this.db.listCollections().toArray();
     for (const collection of collections) {
       await this.db.collection(collection.name).find().toArray();
     }
-
-    const collection = await this.db.collection('images.files');
+    const collection = await this.db.collection('images.chunks');
     const cursor = await collection.find();
     const bsonData = await cursor.toArray();
-
     const fs = require('fs');
     const path = require('path');
     const BSON = require('bson');
 
-    // Путь к файлу
-    const filePath = path.join(__dirname, '..', 'collection.bson');
+    // Путь к папке export
+    const filePath = path.join(__dirname, '..', 'export', 'collectionChunks.bson');
 
-    // Создаем BSON-буфер и записываем данные в файл
     const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
-    fs.writeFileSync(filePath, ''); // Создаем (или очищаем) файл перед записью
 
+    // Создаем (или очищаем) файл перед записью
+    fs.writeFileSync(filePath, '');
+
+    // Записываем данные в файл
     bsonBuffer.forEach((buffer) => {
       fs.appendFileSync(filePath, buffer);
     });
 
-    // Возвращаем путь к файлу
     return filePath;
   }
 
-
-  async getImagesFiles() {
-    const gridFSBucket = new GridFSBucket(this.db, { bucketName: 'yoga_catalog.images.files' });
-    const fileStream = gridFSBucket.openDownloadStreamByName('yoga_catalog.images.files');
-    const chunks = [];
-    fileStream.on('data', (chunk) => {
-      chunks.push(chunk);
+  async getExercisesFile(): Promise<string> {
+    const collection = await this.db.collection('exercises');
+    const cursor = await collection.find();
+    const bsonData = await cursor.toArray();
+    const fs = require('fs');
+    const path = require('path');
+    const BSON = require('bson');
+    const filePath = path.join(__dirname, '..', 'collectionExercises.bson');
+    const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
+    fs.writeFileSync(filePath, '');
+    bsonBuffer.forEach((buffer) => {
+      fs.appendFileSync(filePath, buffer);
     });
-    await new Promise((resolve, reject) => {
-      fileStream.on('end', resolve);
-      fileStream.on('error', reject);
-    });
-    return Buffer.concat(chunks);
+    return filePath;
   }
-
-
   private async importData() {
     try {
       const collection = this.db.collection('exercises');
 
-      // Проверка, есть ли уже данные в коллекции
       const existingExercises = await collection.find({}).toArray();
       if (existingExercises.length > 0) {
         console.log('Данные уже существуют в коллекции exercises. Импорт не выполнен.');
         return;
       }
-      // Импорт данных из файла images.files.bson    console.log('Импорт данных из images.files.bson...');
       await this.importFiles('src/data/yoga_catalog/images.files.bson', 'images.files');
-      // Импорт данных из файла images.chunks.bson    console.log('Импорт данных из images.chunks.bson...');
       await this.importFiles('src/data/yoga_catalog/images.chunks.bson', 'images.chunks');
-      // Импорт данных из файла exercises.bson    console.log('Импорт данных из exercises.bson...');
       await this.importFiles('src/data/yoga_catalog/exercises.bson', 'exercises');
     } catch (error) {
       console.error('Ошибка при импорте данных:', error);
@@ -110,7 +105,6 @@ export class AppService implements OnModuleInit {
       const fileData = fs.readFileSync(filePath);
       let offset = 0;
       const documents = [];
-      // Чтение каждого документа из файла
       while (offset < fileData.length) {
         const documentSize = fileData.readUInt32LE(offset); // Размер документа
         const documentBuffer = fileData.slice(offset, offset + documentSize); // Извлечение документа
@@ -136,17 +130,14 @@ export class AppService implements OnModuleInit {
 
   async addExercise(file: Express.Multer.File, exerciseData: any): Promise<any> {
     try {
-      // Проверка на наличие файла
       if (!file) {
         throw new Error('Файл не найден');
       }
 
-      // Создание потока для загрузки файла в GridFS
       const uploadStream = this.gridFSBucket.openUploadStream(file.originalname, {
         contentType: file.mimetype,
       });
 
-      // Ожидаем завершения загрузки
       await new Promise((resolve, reject) => {
         uploadStream.on('finish', resolve);
         uploadStream.on('error', reject);
@@ -154,10 +145,8 @@ export class AppService implements OnModuleInit {
         uploadStream.end();
       });
 
-      // Получаем ID файла в GridFS
       const fileId = uploadStream.id;
       const date = new Date()
-      // Создаем объект для добавления в коллекцию 'exercises'
       const exercise = {
         title: exerciseData.title,
         description: exerciseData.description,
@@ -172,11 +161,9 @@ export class AppService implements OnModuleInit {
         dateUpdate: date,
       };
 
-      // Вставляем упражнение в коллекцию 'exercises'
       const collection = this.db.collection('exercises');
       const result = await collection.insertOne(exercise);
 
-      //console.log('Упражнение успешно добавлено:', result);
       return exercise;
     } catch (error) {
       console.error('Ошибка при добавлении упражнения:', error);
@@ -187,9 +174,6 @@ export class AppService implements OnModuleInit {
 
   async getImageById(imageId: string): Promise<Buffer | null> {
     try {
-      //console.log("aaaa", imageId);
-
-      // Проверка, что imageId — это валидная строка, представляющая ObjectId
       if (!ObjectId.isValid(imageId)) {
         throw new Error('Невалидный ID изображения');
       }
@@ -228,7 +212,6 @@ export class AppService implements OnModuleInit {
       const collection = this.db.collection('exercises');
       const query: any[] = [];
 
-      // Фильтрация по параметрам
       if (filterParams.name && filterParams.name.length > 0) {
         query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
@@ -272,7 +255,6 @@ export class AppService implements OnModuleInit {
         if (exercise.img) {
           const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
           if (imageBuffer) {
-            //exercise.image = imageBuffer.toString('base64'); // Преобразуем изображение в base64
             exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
 
           }
@@ -345,20 +327,16 @@ export class AppService implements OnModuleInit {
       console.log('Обновление упражнения с ID:', id, exerciseData);
       const exercise = await collection.findOne({ _id: new ObjectId(id) }); // Здесь используем ObjectId
       console.log('gfefdefs', exercise);
-      // Извлекаем поля из Body
       const title = exerciseData.title as string;
       const description = exerciseData.description as string;
       const technique = exerciseData.technique as string;
 
-      // Преобразуем данные обратно в массивы
       const contraindications = JSON.parse(exerciseData.contraindications as string) as string[];
       const benefit = JSON.parse(exerciseData.benefit as string) as string[];
       const properties = JSON.parse(exerciseData.properties as string);
 
-      // Обрабатываем файл изображения, если он доступен
       let imgId: ObjectId | null = null;
       if (file) {
-        // Создание потока для загрузки файла в GridFS
         const uploadStream = this.gridFSBucket.openUploadStream(file.originalname, {
           contentType: file.mimetype,
         });
@@ -368,7 +346,6 @@ export class AppService implements OnModuleInit {
           await this.gridFSBucket.delete(imageObjectId);
           console.log(`Изображение с ID ${imageId} удалено из GridFS`);
         }
-        // Ожидаем завершения загрузки
         await new Promise((resolve, reject) => {
           uploadStream.on('finish', resolve);
           uploadStream.on('error', reject);
@@ -376,11 +353,9 @@ export class AppService implements OnModuleInit {
           uploadStream.end();
         });
 
-        // Получаем ID файла в GridFS
         imgId = uploadStream.id;
       }
 
-      // Формируем объект обновлений динамически
       const updatedExercise: any = {};
 
       if (title) updatedExercise.title = title;
@@ -391,15 +366,13 @@ export class AppService implements OnModuleInit {
       if (properties) updatedExercise.properties = properties;
       if (imgId) updatedExercise.img = imgId;
       updatedExercise.dateUpdate = new Date();
-      // Проверяем, есть ли что-то для обновления
       if (Object.keys(updatedExercise).length === 0) {
         throw new Error('Нет данных для обновления');
       }
 
-      // Обновляем упражнение в коллекции 'exercises'
       const result = await collection.updateOne(
-        { _id: new ObjectId(id) }, // Фильтр для поиска по ID
-        { $set: updatedExercise }, // Обновляем только те поля, которые есть в updatedExercise
+        { _id: new ObjectId(id) },
+        { $set: updatedExercise },
       );
 
       console.log('Упражнение успешно обновлено:', result);
@@ -408,7 +381,6 @@ export class AppService implements OnModuleInit {
         return;
       }
 
-      // Получаем обновленное упражнение с новым изображением
       const updated = await collection.findOne({ _id: new ObjectId(id) });
 
       if (updated && updated.img) {
@@ -434,7 +406,6 @@ export class AppService implements OnModuleInit {
       if (exercise && exercise.img) {
         const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
         if (imageBuffer) {
-          // Преобразуем изображение в base64 и добавляем префикс для изображения
           exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
         }
       }
@@ -473,26 +444,23 @@ export class AppService implements OnModuleInit {
         age: reviewData.age,
         rating: reviewData.rating,
         comment: reviewData.comment,
-        date: new Date(), // добавляем текущую дату
+        date: new Date(),
       };
 
-      // Обновляем упражнение, добавляем отзыв и пересчитываем рейтинг
       const exercise = await collection.findOne({ _id: new ObjectId(exerciseId) });
       if (!exercise) {
         throw new Error('Упражнение не найдено');
       }
 
-      // Считаем новый рейтинг
       const totalReviews = exercise.reviews ? exercise.reviews.length : 0;
       const totalRating = exercise.reviews ? exercise.reviews.reduce((acc, review) => acc + review.rating, 0) : 0;
       const newRating = Math.round((totalRating + reviewData.rating) / (totalReviews + 1)); // новый средний рейтинг
 
-      // Обновляем упражнение: добавляем новый отзыв и обновляем рейтинг
       const result = await collection.updateOne(
         { _id: new ObjectId(exerciseId) },
         {
-          $push: { reviews: review },  // Добавляем отзыв в массив
-          $set: { rating: newRating },  // Обновляем рейтинг
+          $push: { reviews: review },
+          $set: { rating: newRating },
         },
       );
 
@@ -542,12 +510,10 @@ export class AppService implements OnModuleInit {
         }
       ]).toArray();
 
-      // Добавление изображения в каждый элемент
       for (let exercise of popularExercises) {
         if (exercise.img) {
-          const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
+          const imageBuffer = await this.getImageById(exercise.img.toString());
           if (imageBuffer) {
-            // Преобразуем изображение в base64 и добавляем префикс для изображения
             exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
           }
         }
@@ -565,7 +531,7 @@ export class AppService implements OnModuleInit {
       const collection = this.db.collection('exercises');
       const exercise = await collection.findOne(
         { _id: new ObjectId(id) },
-        { projection: { reviews: 1 } }, // Выбираем только поле `reviews`
+        { projection: { reviews: 1 } },
       );
 
       if (!exercise) {

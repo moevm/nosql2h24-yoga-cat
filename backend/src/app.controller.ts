@@ -16,7 +16,6 @@ import { FilterParams, FilterReviews } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as fs from 'fs';
-import JSZip from 'jszip';
 
 @Controller()
 export class AppController {
@@ -27,31 +26,96 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('/export')
-  async downloadFile(@Res() res: Response) {
+  @Get('/exportImageFiles')
+  async downloadFiles(@Res() res: Response) {
     try {
-      const filePath = await this.appService.getImagesChunks();
-
+      const filePath = await this.appService.getImagesFiles();
       if (fs.existsSync(filePath)) {
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', 'attachment; filename=collection.bson');
+        const fileSize = fs.statSync(filePath).size;
 
-        // Отправляем файл полностью, используя `res.download()`
-        res.download(filePath, 'collection.bson', (err) => {
-          if (err) {
-            console.error('Error while downloading file:', err);
-            res.status(500).send('Error downloading file');
-          }
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename=collectionImageFiles.bson');
+        res.setHeader('Content-Length', fileSize);
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+
+        fileStream.on('end', () => {
+          console.log('Файл успешно отправлен на фронтенд.');
+        });
+
+        fileStream.on('error', (err) => {
+          console.error('Ошибка при чтении файла:', err);
+          res.status(500).send('Ошибка при отправке файла');
         });
       } else {
-        res.status(404).send('File not found');
+        console.log('Файл не найден.');
+        res.status(404).send('Файл не найден');
       }
     } catch (error) {
-      console.error('Error while sending file:', error);
-      res.status(500).send('Internal Server Error');
+      console.error('Ошибка при отправке файла:', error);
+      res.status(500).send('Внутренняя ошибка сервера');
     }
   }
 
+  @Get('/exportImageChunks')
+  async downloadChunks(@Res() res: Response) {
+    try {
+      const filePath = await this.appService.getImagesChunks();
+      if (fs.existsSync(filePath)) {
+        const fileSize = fs.statSync(filePath).size;
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename=collectionImageChunks.bson');
+        res.setHeader('Content-Length', fileSize);
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+
+        fileStream.on('end', () => {
+          console.log('Файл успешно отправлен на фронтенд.');
+        });
+
+        fileStream.on('error', (err) => {
+          console.error('Ошибка при чтении файла:', err);
+          res.status(500).send('Ошибка при отправке файла');
+        });
+      } else {
+        console.log('Файл не найден.');
+        res.status(404).send('Файл не найден');
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке файла:', error);
+      res.status(500).send('Внутренняя ошибка сервера');
+    }
+  }
+
+  @Get('/exportExercises')
+  async downloadExercises(@Res() res: Response) {
+    try {
+      const filePath = await this.appService.getExercisesFile();
+      if (fs.existsSync(filePath)) {
+        const fileSize = fs.statSync(filePath).size;
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename=collectionExercises.bson');
+        res.setHeader('Content-Length', fileSize);
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+
+        fileStream.on('end', () => {
+          console.log('Файл успешно отправлен на фронтенд.');
+        });
+
+        fileStream.on('error', (err) => {
+          console.error('Ошибка при чтении файла:', err);
+          res.status(500).send('Ошибка при отправке файла');
+        });
+      } else {
+        console.log('Файл не найден.');
+        res.status(404).send('Файл не найден');
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке файла:', error);
+      res.status(500).send('Внутренняя ошибка сервера');
+    }
+  }
 
   @Get('/exercises')
   async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any> {
@@ -68,10 +132,10 @@ export class AppController {
 
 
   @Post('/exercises')
-  @UseInterceptors(FileInterceptor('img')) // 'img' - это имя поля в FormData
+  @UseInterceptors(FileInterceptor('img'))
   async addExercise(
-    @UploadedFile() file: Express.Multer.File, // Здесь мы получаем файл
-    @Body() exerciseData: any, // Здесь будут остальные поля формы
+    @UploadedFile() file: Express.Multer.File,
+    @Body() exerciseData: any,
   ) {
     return this.appService.addExercise(file, exerciseData);
   }
