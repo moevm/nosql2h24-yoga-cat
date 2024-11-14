@@ -7,6 +7,10 @@ import BasicButton from '~/shared/ui/BasicButton.vue';
 const route = useRoute();
 const isHomePage = computed(() => route.path === '/');
 const isReviewPage = computed(() => route.path === '/feedback');
+const exportData = async ( )=> {
+  const url = `http://localhost:8080/export`;
+   await fetch(url);
+}
 </script>
 
 <template>
@@ -23,7 +27,7 @@ const isReviewPage = computed(() => route.path === '/feedback');
       </div>
       <div class="footer"  v-if="isHomePage">
         <BasicButton label="Импортировать данные" class="footer__button"></BasicButton>
-        <BasicButton label="Экспортировать данные" class="footer__button"></BasicButton>
+        <BasicButton label="Экспортировать данные" class="footer__button" @click="exportData"></BasicButton>
         <BasicButton label="Кастомизированная статистика" class="footer__button"></BasicButton>
       </div>
     </div>

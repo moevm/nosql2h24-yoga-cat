@@ -1,7 +1,22 @@
-import { Body, Controller, Get, Delete, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Delete,
+  Param,
+  Post,
+  Put,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+  Res,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams, FilterReviews } from './types/filter';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import * as fs from 'fs';
+import JSZip from 'jszip';
 
 @Controller()
 export class AppController {
@@ -11,6 +26,32 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('/export')
+  async downloadFile(@Res() res: Response) {
+    try {
+      const filePath = await this.appService.getImagesChunks();
+
+      if (fs.existsSync(filePath)) {
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename=collection.bson');
+
+        // Отправляем файл полностью, используя `res.download()`
+        res.download(filePath, 'collection.bson', (err) => {
+          if (err) {
+            console.error('Error while downloading file:', err);
+            res.status(500).send('Error downloading file');
+          }
+        });
+      } else {
+        res.status(404).send('File not found');
+      }
+    } catch (error) {
+      console.error('Error while sending file:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  }
+
 
   @Get('/exercises')
   async getFilteredExercises(@Query() filterParams: FilterParams): Promise<any> {
@@ -78,3 +119,5 @@ export class AppController {
   }
 
 }
+
+

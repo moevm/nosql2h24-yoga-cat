@@ -1,9 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { BSON, MongoClient, ObjectId, GridFSBucket, GridFSBucketWriteStream } from 'mongodb';
+import { BSON as MyBSON } from 'bson';
 import * as fs from 'fs';
 import { FilterParams, FilterReviews } from './types/filter';
 import * as path from 'path';
-
 @Injectable()
 export class AppService implements OnModuleInit {
   // private readonly uri = 'mongodb://db:27017';
@@ -17,6 +17,70 @@ export class AppService implements OnModuleInit {
     this.db = client.db('yoga_catalog');
     this.gridFSBucket = new GridFSBucket(this.db, { bucketName: 'images' });
     await this.importData();
+  }
+
+
+  // async getImagesChunks() {
+  //   const collections = await this.db.listCollections().toArray();
+  //   for (const collection of collections) {
+  //     const data = await this.db.collection(collection.name).find().toArray();
+  //   }
+  //   const collection = await this.db.collection('images.files');
+  //
+  //   const cursor = await collection.find();
+  //   const bsonData = await cursor.toArray();
+  //
+  //   const fs = require('fs');
+  //   const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
+  //
+  //   bsonBuffer.forEach((buffer) => {
+  //     fs.appendFileSync('collection.bson', buffer);
+  //   });
+  //
+  // }
+
+  async getImagesChunks(): Promise<string> {
+    const collections = await this.db.listCollections().toArray();
+    for (const collection of collections) {
+      await this.db.collection(collection.name).find().toArray();
+    }
+
+    const collection = await this.db.collection('images.files');
+    const cursor = await collection.find();
+    const bsonData = await cursor.toArray();
+
+    const fs = require('fs');
+    const path = require('path');
+    const BSON = require('bson');
+
+    // Путь к файлу
+    const filePath = path.join(__dirname, '..', 'collection.bson');
+
+    // Создаем BSON-буфер и записываем данные в файл
+    const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
+    fs.writeFileSync(filePath, ''); // Создаем (или очищаем) файл перед записью
+
+    bsonBuffer.forEach((buffer) => {
+      fs.appendFileSync(filePath, buffer);
+    });
+
+    // Возвращаем путь к файлу
+    return filePath;
+  }
+
+
+  async getImagesFiles() {
+    const gridFSBucket = new GridFSBucket(this.db, { bucketName: 'yoga_catalog.images.files' });
+    const fileStream = gridFSBucket.openDownloadStreamByName('yoga_catalog.images.files');
+    const chunks = [];
+    fileStream.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    await new Promise((resolve, reject) => {
+      fileStream.on('end', resolve);
+      fileStream.on('error', reject);
+    });
+    return Buffer.concat(chunks);
   }
 
 
