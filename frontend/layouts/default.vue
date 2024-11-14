@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {computed, ref} from 'vue'
 import Logo from "~/shared/ui/Logo.vue";
 import NotificationMessages from "~/entities/NotificationMessages.vue";
@@ -8,8 +8,9 @@ import ModalWindow from '~/entities/ModalWindow.vue'
 import { useNotifyStore } from '~/stores/notify'
 const isOpenImportWindow = ref(false)
 const route = useRoute();
+const router = useRouter();
 const notifyStore = useNotifyStore()
-const isHomePage = computed(() => route.path === '/');
+const isHomePage = computed(() => route.path === '/' || route.path === '/catalog');
 const isReviewPage = computed(() => route.path === '/feedback');
 const exportData = () => {
   const urlFiles = `http://localhost:8080/exportImageFiles`;
@@ -75,22 +76,18 @@ const importData = () => {
       const validFiles = ['images.files.bson', 'images.chunks.bson', 'exercises.bson'];
       const selectedFiles = Array.from(files);
 
-      // Создаем объект для хранения файлов по названию
       const fileMap: Record<string, File> = {};
 
-      // Заполняем объект fileMap, проверяя название каждого файла
       selectedFiles.forEach((file) => {
         if (validFiles.includes(file.name)) {
           fileMap[file.name] = file;
         }
       });
 
-      // Проверяем, что все необходимые файлы присутствуют
       const isValid = validFiles.every((validName) => fileMap[validName] !== undefined);
 
       if (isValid) {
         const formData = new FormData();
-        // Добавляем файлы в formData в правильном порядке
         formData.append('files', fileMap['images.files.bson'], 'images.files.bson');
         formData.append('files', fileMap['images.chunks.bson'], 'images.chunks.bson');
         formData.append('files', fileMap['exercises.bson'], 'exercises.bson');
@@ -103,6 +100,7 @@ const importData = () => {
           const result = await response.json();
 
           if (response.status === 200) {
+            await router.push('/catalog')
             console.log('Файлы успешно загружены и данные импортированы:', result.message);
           } else {
             console.error('Ошибка при загрузке файлов:', result.message);

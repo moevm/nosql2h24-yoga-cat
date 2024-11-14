@@ -6,8 +6,8 @@ import { FilterParams, FilterReviews } from './types/filter';
 import * as path from 'path';
 @Injectable()
 export class AppService implements OnModuleInit {
-  // private readonly uri = 'mongodb://db:27017';
-  private readonly uri = 'mongodb://127.0.0.1:27017';
+  private readonly uri = 'mongodb://db:27017';
+  // private readonly uri = 'mongodb://127.0.0.1:27017';
   private db: any;
   private gridFSBucket: GridFSBucket;
 
@@ -52,15 +52,12 @@ export class AppService implements OnModuleInit {
     const path = require('path');
     const BSON = require('bson');
 
-    // Путь к папке export
     const filePath = path.join(__dirname, '..', 'collectionChunks.bson');
 
     const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
 
-    // Создаем (или очищаем) файл перед записью
     fs.writeFileSync(filePath, '');
 
-    // Записываем данные в файл
     bsonBuffer.forEach((buffer) => {
       fs.appendFileSync(filePath, buffer);
     });
@@ -87,12 +84,10 @@ export class AppService implements OnModuleInit {
 
   async importDataFromFiles(imagesFilesPath: string, imagesChunksPath: string, exercisesPath: string) {
     try {
-      // Очищаем коллекции перед вставкой данных
       await this.db.collection('images.files').deleteMany({});
       await this.db.collection('images.chunks').deleteMany({});
       await this.db.collection('exercises').deleteMany({});
 
-      // Импортируем файлы
       await this.importFiles(imagesFilesPath, 'images.files');
       await this.importFiles(imagesChunksPath, 'images.chunks');
       await this.importFiles(exercisesPath, 'exercises');
@@ -229,7 +224,7 @@ export class AppService implements OnModuleInit {
 
   async getFilteredExercises(filterParams: FilterParams): Promise<{
     exercises: any[];
-    pagination: { totalPages: number, currentPage: number }
+    pagination: { totalPages: number, currentPage: number };
   }> {
     try {
       const collection = this.db.collection('exercises');
@@ -238,7 +233,6 @@ export class AppService implements OnModuleInit {
       if (filterParams.name && filterParams.name.length > 0) {
         query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
-
 
       if (filterParams.spine && filterParams.spine.length > 0) {
         query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine : [filterParams.spine] } });
@@ -257,29 +251,28 @@ export class AppService implements OnModuleInit {
       }
 
       if (filterParams.stars && filterParams.stars.length > 0) {
-        query.push({ 'rating': { $in: Array.isArray(filterParams.stars) ? filterParams.stars.map((el)=> +el) : [+filterParams.stars] } });
+        query.push({ 'rating': { $in: Array.isArray(filterParams.stars) ? filterParams.stars.map((el) => +el) : [+filterParams.stars] } });
       }
 
-      const finalQuery = { $or: [...query] };
+      const finalQuery = query.length > 0 ? { $and: query } : {};
+
       const page = filterParams.page || 1;
       const limit = 6;
       const skip = (page - 1) * limit;
 
-      const totalExercises = await collection.countDocuments(finalQuery.$or.length > 0 ? finalQuery : {});
+      const totalExercises = await collection.countDocuments(finalQuery);
       const totalPages = Math.ceil(totalExercises / limit);
 
-      const exercises = await collection.find(finalQuery.$or.length > 0 ? finalQuery : {})
+      const exercises = await collection.find(finalQuery)
         .skip(skip)
         .limit(limit)
         .toArray();
-      console.log("jsjs", exercises);
-      // Добавление изображения в каждый элемент
+
       for (let exercise of exercises) {
         if (exercise.img) {
           const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
           if (imageBuffer) {
             exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
-
           }
         }
       }
@@ -293,6 +286,7 @@ export class AppService implements OnModuleInit {
       return { exercises: [], pagination: { totalPages: 0, currentPage: 0 } };
     }
   }
+
 
 
   async getReviewsByText(filterParams: FilterReviews): Promise<any[]> {
