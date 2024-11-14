@@ -83,6 +83,29 @@ export class AppService implements OnModuleInit {
     });
     return filePath;
   }
+
+
+  async importDataFromFiles(imagesFilesPath: string, imagesChunksPath: string, exercisesPath: string) {
+    try {
+      // Очищаем коллекции перед вставкой данных
+      await this.db.collection('images.files').deleteMany({});
+      await this.db.collection('images.chunks').deleteMany({});
+      await this.db.collection('exercises').deleteMany({});
+
+      // Импортируем файлы
+      await this.importFiles(imagesFilesPath, 'images.files');
+      await this.importFiles(imagesChunksPath, 'images.chunks');
+      await this.importFiles(exercisesPath, 'exercises');
+
+      console.log('Data successfully imported from uploaded files.');
+    } catch (error) {
+      console.error('Error importing data from files:', error);
+      throw error;
+    }
+  }
+
+
+
   private async importData() {
     try {
       const collection = this.db.collection('exercises');
