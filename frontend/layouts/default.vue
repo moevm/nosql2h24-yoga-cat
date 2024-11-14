@@ -29,7 +29,7 @@ const exportData = () => {
       const urlFile = URL.createObjectURL(fileBlob);
       const linkFile = document.createElement('a');
       linkFile.href = urlFile;
-      linkFile.download = 'imageFiles.bson';
+      linkFile.download = 'images.files.bson';
       document.body.appendChild(linkFile);
       linkFile.click();
       linkFile.remove();
@@ -38,7 +38,7 @@ const exportData = () => {
       const urlChunk = URL.createObjectURL(chunkBlob);
       const linkChunk = document.createElement('a');
       linkChunk.href = urlChunk;
-      linkChunk.download = 'imageChunks.bson';
+      linkChunk.download = 'images.chunks.bson';
       document.body.appendChild(linkChunk);
       linkChunk.click();
       linkChunk.remove();
@@ -75,8 +75,8 @@ const exportData = () => {
       </div>
       <div class="footer"  v-if="isHomePage">
         <BasicButton label="Импортировать данные" class="footer__button"></BasicButton>
-        <BasicButton label="Экспортировать данные" class="footer__button" @click="exportData"></BasicButton>
         <BasicButton label="Кастомизированная статистика" class="footer__button"></BasicButton>
+        <BasicButton label="Экспортировать данные" class="footer__button" @click="exportData"></BasicButton>
       </div>
     </div>
     <NotificationMessages />

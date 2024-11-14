@@ -53,7 +53,7 @@ export class AppService implements OnModuleInit {
     const BSON = require('bson');
 
     // Путь к папке export
-    const filePath = path.join(__dirname, '..', 'export', 'collectionChunks.bson');
+    const filePath = path.join(__dirname, '..', 'collectionChunks.bson');
 
     const bsonBuffer = bsonData.map((doc) => BSON.serialize(doc));
 
