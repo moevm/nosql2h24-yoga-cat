@@ -30,7 +30,10 @@ export class AppController {
 
   @Post('/import')
   @UseInterceptors(FilesInterceptor('files'))
-  async uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+  async uploadFiles(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Res() res: Response
+  ) {
     try {
       // Проверяем, что пришли все три файла
       const requiredFiles = ['images.files.bson', 'images.chunks.bson', 'exercises.bson'];
@@ -38,7 +41,7 @@ export class AppController {
 
       for (const requiredFile of requiredFiles) {
         if (!uploadedFiles.includes(requiredFile)) {
-          return { status: 400, message: `Missing file: ${requiredFile}` };
+          return res.status(400).json({ message: `Missing file: ${requiredFile}` });
         }
       }
 
@@ -60,10 +63,11 @@ export class AppController {
         path.join(tempDir, 'exercises.bson')
       );
 
-      return { status: 200, message: 'Files uploaded and data imported successfully' };
+      console.log('success');
+      return res.status(200).json({ message: 'Files uploaded and data imported successfully' });
     } catch (error) {
       console.error('Error during file upload and import:', error);
-      return { status: 500, message: 'Internal Server Error' };
+      return res.status(500).json({ message: 'Internal Server Error' });
     }
   }
 

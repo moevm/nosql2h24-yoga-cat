@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import {useRoute} from 'vue-router'
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import Logo from "~/shared/ui/Logo.vue";
 import NotificationMessages from "~/entities/NotificationMessages.vue";
 import BasicButton from '~/shared/ui/BasicButton.vue';
+import ModalWindow from '~/entities/ModalWindow.vue'
+import { useNotifyStore } from '~/stores/notify'
+const isOpenImportWindow = ref(false)
 const route = useRoute();
+const notifyStore = useNotifyStore()
 const isHomePage = computed(() => route.path === '/');
 const isReviewPage = computed(() => route.path === '/feedback');
 const exportData = () => {
@@ -57,6 +61,74 @@ const exportData = () => {
       console.error('Ошибка при загрузке файлов:', error);
     });
 }
+const importData = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.bson';
+  input.multiple = true;
+
+  input.addEventListener('change', async (event) => {
+    isOpenImportWindow.value = false;
+    const files = (event.target as HTMLInputElement).files;
+
+    if (files && files.length === 3) {
+      const validFiles = ['images.files.bson', 'images.chunks.bson', 'exercises.bson'];
+      const selectedFiles = Array.from(files);
+
+      // Создаем объект для хранения файлов по названию
+      const fileMap: Record<string, File> = {};
+
+      // Заполняем объект fileMap, проверяя название каждого файла
+      selectedFiles.forEach((file) => {
+        if (validFiles.includes(file.name)) {
+          fileMap[file.name] = file;
+        }
+      });
+
+      // Проверяем, что все необходимые файлы присутствуют
+      const isValid = validFiles.every((validName) => fileMap[validName] !== undefined);
+
+      if (isValid) {
+        const formData = new FormData();
+        // Добавляем файлы в formData в правильном порядке
+        formData.append('files', fileMap['images.files.bson'], 'images.files.bson');
+        formData.append('files', fileMap['images.chunks.bson'], 'images.chunks.bson');
+        formData.append('files', fileMap['exercises.bson'], 'exercises.bson');
+
+        try {
+          const response = await fetch('http://localhost:8080/import', {
+            method: 'POST',
+            body: formData,
+          });
+          const result = await response.json();
+
+          if (response.status === 200) {
+            console.log('Файлы успешно загружены и данные импортированы:', result.message);
+          } else {
+            console.error('Ошибка при загрузке файлов:', result.message);
+          }
+        } catch (error) {
+          console.error('Ошибка при отправке запроса на сервер:', error);
+        }
+      } else {
+        notifyStore.addNotification({
+          message: 'Файлы имеют неверные названия.',
+          type: 'error',
+          id: Date.now(),
+        });
+      }
+    } else {
+      notifyStore.addNotification({
+        message: 'Необходимо выбрать 3 файла.',
+        type: 'error',
+        id: Date.now(),
+      });
+    }
+  });
+
+
+  input.click();
+};
 
 
 </script>
@@ -74,12 +146,20 @@ const exportData = () => {
         <slot />
       </div>
       <div class="footer"  v-if="isHomePage">
-        <BasicButton label="Импортировать данные" class="footer__button"></BasicButton>
+        <BasicButton label="Импортировать данные" class="footer__button" @click="isOpenImportWindow=true"></BasicButton>
         <BasicButton label="Кастомизированная статистика" class="footer__button"></BasicButton>
         <BasicButton label="Экспортировать данные" class="footer__button" @click="exportData"></BasicButton>
       </div>
     </div>
     <NotificationMessages />
+    <ModalWindow @close="isOpenImportWindow=false" :closed-click-outside="true" :is-visible="isOpenImportWindow" class="modal-import" title="Необходимо выбрать сразу 3 файла" subtitle="Названия выбранных файлов: images.chunks.bson, images.files.bson, exercises.bson" >
+      <template #buttons>
+        <div class="modal-import__buttons">
+          <BasicButton label="Выбрать" class="modal-button" @click="importData" />
+          <BasicButton label="Отмена" theme="purple" class="modal-button" @click="isOpenImportWindow=false" />
+        </div>
+      </template>
+    </ModalWindow>
   </div>
 </template>
 
@@ -93,6 +173,17 @@ const exportData = () => {
   background-color:$light-brand;
   &.reviewPage{
     background-color: #a49fb3;
+  }
+  .modal-import{
+    &__buttons{
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 100px;
+      .modal-button{
+        width:200px;
+      }
+    }
   }
   @include thin-scrollbar;
   & .container{
