@@ -9,13 +9,14 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
-  Res,
+  Res, UploadedFiles,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FilterParams, FilterReviews } from './types/filter';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as fs from 'fs';
+import * as path from 'node:path';
 
 @Controller()
 export class AppController {
@@ -24,6 +25,46 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+
+  @Post('/import')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    try {
+      // Проверяем, что пришли все три файла
+      const requiredFiles = ['images.files.bson', 'images.chunks.bson', 'exercises.bson'];
+      const uploadedFiles = files.map((file) => file.originalname);
+
+      for (const requiredFile of requiredFiles) {
+        if (!uploadedFiles.includes(requiredFile)) {
+          return { status: 400, message: `Missing file: ${requiredFile}` };
+        }
+      }
+
+      // Сохраняем файлы временно на диск
+      const tempDir = path.join(__dirname, '..', 'temp');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
+
+      for (const file of files) {
+        const filePath = path.join(tempDir, file.originalname);
+        fs.writeFileSync(filePath, file.buffer);
+      }
+
+      // Импортируем данные в базу
+      await this.appService.importDataFromFiles(
+        path.join(tempDir, 'images.files.bson'),
+        path.join(tempDir, 'images.chunks.bson'),
+        path.join(tempDir, 'exercises.bson')
+      );
+
+      return { status: 200, message: 'Files uploaded and data imported successfully' };
+    } catch (error) {
+      console.error('Error during file upload and import:', error);
+      return { status: 500, message: 'Internal Server Error' };
+    }
   }
 
   @Get('/exportImageFiles')
