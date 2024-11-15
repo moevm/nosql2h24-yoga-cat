@@ -522,7 +522,8 @@ export class AppService implements OnModuleInit {
             properties: 1,
             reviews: 1,
             rating: 1,
-            // другие поля, которые вы хотите вернуть
+            dateAdd: 1,
+            dateUpdate:1
           }
         }
       ]).toArray();
