@@ -73,6 +73,8 @@ onBeforeMount(()=> {
       <div class="filter__body">
         <BasicInput theme="light" type="text" v-model="properties.title" placeholder="Название асаны" class="filter__body__name">
         </BasicInput>
+        <BasicInput theme="light" type="text" v-model="properties.description" placeholder="Описание асаны" class="filter__body__name">
+        </BasicInput>
         <CheckboxesField :properties="properties" theme="light"/>
       </div>
       <div class="filter__footer">

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import type { Exercise, Properties } from '~/types/exercise';
 type FiltersState = {
   exercises: Exercise[]
-  properties: Properties & {title: string};
+  properties: Properties & {title: string, description: string};
   isLoading: boolean;
   pagination: {
     currentPage: number,
@@ -21,6 +21,7 @@ export const useCatalogStore = defineStore({
     },
     properties: {
       title: '',
+      description: '',
       spine: [
         { key: 'DEFLECTION', value: false, title: 'Прогиб' },
         { key: 'INCLINE', value: false, title: 'Наклон' },
@@ -84,6 +85,9 @@ export const useCatalogStore = defineStore({
       searchParams.append('page', `${this.pagination.currentPage}`);
       if (this.properties.title !== '') {
         searchParams.append('name', this.properties.title);
+      }
+      if (this.properties.description !== '') {
+        searchParams.append('description', this.properties.description);
       }
       for (const filterCategory of filterKeys) {
         const filters = this.properties[filterCategory];
