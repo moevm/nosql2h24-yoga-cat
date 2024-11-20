@@ -3,7 +3,7 @@ import type { StatisticType } from '~/types/exercise';
 
 type showStatisticsState = {
     type: StatisticType;
-    date: string[];
+    date: Date[];
     exercise_id: string;
     header: string;
     description: string;

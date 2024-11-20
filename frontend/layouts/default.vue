@@ -145,7 +145,9 @@ const importData = () => {
       </div>
       <div class="footer"  v-if="isHomePage">
         <BasicButton label="Импортировать данные" class="footer__button" @click="isOpenImportWindow=true"></BasicButton>
-        <BasicButton label="Кастомизированная статистика" class="footer__button"></BasicButton>
+        <NuxtLink to="statistics">
+          <BasicButton label="Кастомизированная статистика" class="footer__button"></BasicButton>
+        </NuxtLink>
         <BasicButton label="Экспортировать данные" class="footer__button" @click="exportData"></BasicButton>
       </div>
     </div>
