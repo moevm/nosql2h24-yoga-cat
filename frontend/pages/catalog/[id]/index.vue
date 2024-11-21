@@ -8,6 +8,7 @@ import BasicButton from '~/shared/ui/BasicButton.vue';
 import StarIcon from "~/shared/icons/StarIcon.vue";
 import ModalWindow from '~/entities/ModalWindow.vue';
 import ReviewCard from '~/entities/ReviewCard.vue'
+import Checkbox from "#shared/ui/Checkbox.vue";
 const route = useRoute();
 const router = useRouter();
 const asanaId = route.params.id;
@@ -18,6 +19,24 @@ const {reviews} = storeToRefs(reviewsStore);
 const {exercise} = storeToRefs(exerciseStore);
 const data = computed(()=>exercise.value);
 const reviewsData = computed(()=>reviews.value.slice(0,3));
+const define = {
+  'DEFLECTION': 'Прогиб',
+  'INCLINE': 'Наклон',
+  'TWIST': 'Скрутка',
+  'LATERAL_TILT': 'Боковой наклон',
+  'STANDING_ON_HANDS': 'Стоя на руках',
+  'STANDING_ON_FEET': 'Стоя на ногах',
+  'SITTING': 'Сидя',
+  'LYING_ON_STOMACH': 'Лежа на животе',
+  'LYING_ON_BACK': 'Лежа на спине',
+  'LYING_ON_YOUR_SIDE': 'Лежа на боку',
+  'TURNED_OVER': 'Перевернутые',
+  'STRENGTH': 'Силовая',
+  'FLEXIBILITY': 'Гибкостная',
+  'BALANCE': 'Балансовая',
+  'OPENING_HIP_JOINTS': 'РАскрытие тазобедренных суставов',
+  'OPENING_SHOULDER_JOINTS': 'Раскрытие плечевых суставов'
+}
 const goToReviews = async ()=> {
   await router.push(`/catalog/${route.params.id}/reviews`);
 }
@@ -27,13 +46,10 @@ const removeAsana = async () => {
   isOpenRemoveWindow.value = false;
   await router.push('/catalog')
 }
-// const toInt = (value : any) => {
-//   if( typeof value === 'number') return value
-//   else return 0
-// }
 onMounted(async ()=> {
   await exerciseStore.getExercise(asanaId);
   await reviewsStore.getReviews(asanaId);
+  console.log(exercise.value.properties.spine)
 })
 </script>
 
@@ -73,6 +89,47 @@ onMounted(async ()=> {
         <h3>Польза</h3>
         <div class="content">
           <li class="benefits_list" v-for="item in data.benefit">{{ item }}</li>
+        </div>
+      </div>
+    </div>
+    <div class="properties_block">
+      <div class="review_header">
+        <h3>Характеристики</h3>
+      </div>
+      <div class="properties_wrapper">
+        <div class="spine">
+          <div class="title">Позвоночник</div>
+          <div class="property_wrapper">
+            <div class="item" v-for="(item) in exercise.properties.spine">
+              <li class="item_title">{{define[item]}}</li>
+            </div>
+          </div>
+        </div>
+        <div class="positionInSpace">
+          <div class="title">Положение в пространстве</div>
+          <div class="property_wrapper">
+            <div class="item" v-for="(item) in exercise.properties.positionInSpace" :key="item.title">
+              <li class="item_title">{{define[item]}}</li>
+            </div>
+          </div>
+        </div>
+        <div class="load">
+          <div class="loadAccent">
+            <div class="title">Акценты нагрузки</div>
+            <div class="property_wrapper">
+              <div class="item" v-for="(item) in exercise.properties.loadAccent" :key="item.title">
+                <li class="item_title">{{define[item]}}</li>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="periphery">
+          <div class="title">Периферия</div>
+          <div class="property_wrapper">
+            <div class="item" v-for="(item) in exercise.properties.periphery" :key="item.title">
+              <li class="item_title">{{define[item]}}</li>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -207,6 +264,46 @@ onMounted(async ()=> {
     & .content{
       font-size: 1.5rem;
       color:  $brand;
+    }
+  }
+  .properties_block{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.3rem;
+    width: 100%;
+    padding: 2.5rem 9rem;
+    background-color: $brand;
+    border-radius: 5rem;
+    .properties_wrapper {
+      min-width: 1000px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      width: 100%;
+      margin-top: 1rem;
+
+      .title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: $light-brand;
+      }
+
+      .property_wrapper {
+        width: fit-content;
+        display: flex;
+        flex-direction: column;
+        row-gap: 0.5rem;
+
+        .item {
+          display: flex;
+          align-items: center;
+          gap: 0.7rem;
+          width: fit-content;
+          .item_title {
+            color: $light-brand;
+            font-size: 1.2rem;
+          }
+        }
+      }
     }
   }
   & .review_block{

@@ -10,7 +10,7 @@ export type CardInfo = {
 defineProps<CardInfo>()
 const parseDate = (date: string) => {
   const tmp = new Date(date);
-  return `${tmp.getDate()}.${tmp.getMonth()+1} ${tmp.getHours()}:${tmp.getMinutes()}`;
+  return `${tmp.getDate()}.${tmp.getMonth()+1}.${tmp.getFullYear()%100} ${tmp.getHours()}:${tmp.getMinutes()}`;
 }
 </script>
 
