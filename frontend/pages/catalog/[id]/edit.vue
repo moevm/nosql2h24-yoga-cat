@@ -26,17 +26,7 @@ const { isLoading, img, title, description, technique, contraindications, benefi
 
 const loadExercise = async () => {
   const exerciseId = route.params.id as string
-  console.log('Загрузка данных для упражнения с ID:', exerciseId)
   await exerciseStore.loadExerciseData(exerciseId)
-  console.log('Данные упражнения загружены:', {
-    img: img.value,
-    title: title.value,
-    description: description.value,
-    technique: technique.value,
-    contraindications: contraindications.value,
-    benefit: benefit.value,
-    properties: properties.value
-  })
 }
 
 const updateExercise = async () => {

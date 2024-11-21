@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-import type {Review} from '~/types/exercise';
-import {Properties} from "~/types/exercise";
+import type { Review, Stars } from '~/types/exercise'
 export type resultExercise = {
     id: string;
     title: string;
@@ -11,6 +10,10 @@ type searchReviewState = {
     isLoading: boolean;
     exercises: resultExercise[];
     substring: string;
+    authorName: string;
+    authorAge: string;
+    date: Date | null;
+    stars: {key: Stars, value: boolean}[];
 }
 
 export const useReviewsSearchingStore = defineStore({
@@ -18,7 +21,17 @@ export const useReviewsSearchingStore = defineStore({
     state: (): searchReviewState => ({
         isLoading: false,
         exercises: [],
-        substring: ''
+        substring: '',
+        authorName: '',
+        authorAge: '',
+        date: null,
+        stars: [
+            { key: 5, value: false },
+            { key: 4, value: false },
+            { key: 3, value: false },
+            { key: 2, value: false },
+            { key: 1, value: false },
+        ],
     }),
     actions: {
         async applyFilters() {
@@ -38,6 +51,14 @@ export const useReviewsSearchingStore = defineStore({
         getQueryString() {
             const searchParams = new URLSearchParams();
             searchParams.append('substring', `${this.substring}`);
+            searchParams.append('name', `${this.authorName}`);
+            searchParams.append('age', `${parseInt(this.authorAge)}`);
+            searchParams.append('date', `${this.date}`);
+            for (const star of this.stars) {
+                if (star.value) {
+                    searchParams.append('stars', `${star.key}`);
+                }
+            }
             return searchParams.toString();
         },
     }

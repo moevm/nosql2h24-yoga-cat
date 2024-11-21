@@ -5,13 +5,19 @@ import ReviewCard from '~/entities/ReviewCard.vue'
 import SearchIcon from "~/shared/icons/SearchIcon.vue";
 import {storeToRefs} from "pinia";
 import {useReviewsSearchingStore} from "~/stores/searchReview";
-import {onBeforeMount} from 'vue';
+import { onBeforeMount, ref } from 'vue'
+import Checkbox from '#shared/ui/Checkbox.vue'
+import StarIcon from '#shared/icons/StarIcon.vue'
+import CustomDatepicker from '#shared/ui/CustomDatepicker.vue'
 const searchStore = useReviewsSearchingStore()
-const {isLoading, exercises, substring} = storeToRefs(searchStore);
-
+const {exercises, substring, authorName, authorAge,stars, date } = storeToRefs(searchStore);
+const ageInput = ref()
 const applyFilters = async() => {
   try{
-    await searchStore.applyFilters();
+    const ageIsValid= ageInput.value?.validate()
+    if(ageIsValid){
+      await searchStore.applyFilters();
+    }
   }
   catch(err){
     console.log('error', err);
@@ -27,17 +33,42 @@ onBeforeMount(()=> {
     <h1>Поиск асаны по отзывам</h1>
     <div class="search_bar">
       <BasicInput type="text" v-model="substring" placeholder="Текст отзыва" class="text_input"/>
-      <BasicButton class="search_btn" @click="applyFilters">
-        <template #after>
+      <BasicInput type="text" v-model="authorName" placeholder="Имя автора" class="text_input"/>
+      <BasicInput ref="ageInput" type="text" v-model="authorAge" placeholder="Возраст автора" class="text_input" :rules="[(val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',(val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
+      <div class="stars-date-wrapper">
+        <div class="stars-wrapper">
+          <div class="title">Оценка</div>
+          <div class="checkbox-wrapper stars">
+            <div v-for="(item, idx) in stars" :key="item.key" class="wrapper-item">
+              <div class="item" :class="{'left-side': idx < 3, 'right-side': idx >= 3}">
+                <Checkbox  v-model="item.value"/>
+                <span class="item__title">{{item.key}}</span>
+                <div class="item__icon">
+                  <StarIcon/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="date-button-wrapper">
+          <CustomDatepicker :model-value="date" class="date" label="Даты публикации" @update:model-value="(newValue) => date = newValue"/>
+          <BasicButton class="search_btn" @click="applyFilters">
+            <template #after>
           <span class="after">
+            <span class="after-text">Найти</span>
             <SearchIcon/>
           </span>
-        </template>
-      </BasicButton>
+            </template>
+          </BasicButton>
+        </div>
+
+      </div>
+
+
     </div>
     <div v-if="exercises.length > 0" class="result_block">
       <h3>Найдено по Вашему запросу</h3>
-      <div v-for="item in exercises" class="exercise_res">
+      <div v-for="item in exercises" class="exercise_res" :key="item.id">
         <div class="header">
           <div class="title">На асану: {{item.title}}</div>
           <NuxtLink class="button" :to="`/catalog/${item.id}`">
@@ -63,14 +94,16 @@ onBeforeMount(()=> {
   }
   & .search_bar{
     display: flex;
-    flex-direction: row;
-    width: 60%;
+    flex-direction: column;
+    row-gap: 12px;
+    width: 40%;
     margin-bottom: 4rem;
     & .text_input{
       width: 100%;
     }
     & .search_btn{
-      margin-left: 1rem;
+      margin: 0 auto;
+      width: 100%;
       background-color: $brand;
       color: $light-brand;
     }
@@ -105,6 +138,68 @@ onBeforeMount(()=> {
 }
 .after{
   display: flex;
+  gap: 10px;
   align-items: center;
+  justify-content: center;
+  &-text{
+    font-size: 18px;
+  }
+}
+.stars-date-wrapper{
+  height: fit-content;
+  display: flex;
+  gap: 16px;
+  .date{
+    height: fit-content;
+    width: 100%;
+    transition: all 0.2s ease;
+    &:hover{
+      background-color: #e6dbea;
+    }
+  }
+}
+.stars-wrapper{
+  color: #6e5a73;
+  width: fit-content;
+  border: 2px solid $brand;
+  border-radius: 30px;
+  padding: 10px 15px 15px;
+  flex-direction: column;
+  display: flex;
+  row-gap: 12px;
+}
+.checkbox-wrapper{
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.5rem;
+  &.stars{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+  }
+  .left-side {
+    grid-column: 1;
+  }
+
+  .right-side {
+    grid-column: 2;
+  }
+  & .item{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    &__icon{
+      color: #FFA931;
+    }
+  }
+}
+.date-button-wrapper{
+  justify-content: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
 }
 </style>

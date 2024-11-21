@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import VueDatePicker from '@vuepic/vue-datepicker'
+import {ref, computed} from 'vue'
 import type { DatePickerInstance } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import BasicButton from '~/shared/ui/BasicButton.vue';
+import CalendarIcon from '#shared/icons/CalendarIcon.vue'
+import { format } from 'date-fns'
+import CrossIcon from '#shared/icons/CrossIcon.vue'
 const datepicker = ref<DatePickerInstance>(null)
 interface Props {
-  modelValue: Date[] | null
+  modelValue: Date[] | Date | null
+  range?: boolean
   label?: string
   autoPosition?: boolean
   minDate?: Date | null
@@ -13,6 +18,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  range: false,
   label: '',
   autoPosition: true,
   minDate: undefined,
@@ -26,6 +32,19 @@ const openCalendar = () => {
     datepicker.value.openMenu()
   }
 }
+const formatDate = (date: Date | Date[] | null) => {
+  if (!date) return '';
+  if (Array.isArray(date) && date.length === 2) {
+    const [startDate, endDate] = date;
+    return `${format(startDate, 'dd.MM.yyyy')} - ${format(endDate, 'dd.MM.yyyy')}`;
+  } else if (Array.isArray(date) &&  date.length === 1) {
+    return format(date, 'dd.MM.yyyy');
+  }
+  else if(date){
+    return format(date, 'dd.MM.yyyy');
+  }
+  return '';
+};
 
 const localModelValue = computed({
   get() {
@@ -47,17 +66,18 @@ const localModelValue = computed({
         v-model="localModelValue"
         :auto-position="autoPosition"
         locale="ru"
+        :range="range"
+        :format="formatDate"
         :hide-input-icon="true"
         :enable-time-picker="false"
         :clearable="false"
-        range
         :min-date="minDate ? minDate : undefined"
         :max-date="maxDate ? maxDate : undefined"
     >
       <template #action-row="{ internalModelValue, selectDate }">
-        <div class="action-row flex w-full items-center justify-between">
+        <div class="action-row">
           <p class="current-selection">{{ formatDate(internalModelValue) }}</p>
-          <BasicButton class="select-button" @click="selectDate">Р’С‹Р±СЂР°С‚СЊ</BasicButton>
+          <BasicButton class="select-button" @click="selectDate">Выбрать</BasicButton>
         </div>
       </template>
     </VueDatePicker>
@@ -67,25 +87,25 @@ const localModelValue = computed({
       </slot>
     </div>
     <div
-        v-if="localModelValue"
-        class="cross-wrap icon-wrap"
-        @click="localModelValue = null"
+      v-if="localModelValue"
+      class="cross-wrap icon-wrap"
+      @click="localModelValue = null"
     >
-      <Icon name="ekit-x" class="cross" :size="14" />
+      <CrossIcon/>
     </div>
     <div
-        v-if="!localModelValue"
-        class="calendar-wrap icon-wrap"
-        @click="openCalendar"
+      v-if="!localModelValue"
+      class="calendar-wrap icon-wrap"
+      @click="openCalendar"
     >
-      <Icon name="ekit-blank-calendar" :size="16" class="calendar" />
+      <CalendarIcon width="24" height="24"/>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 :deep(.dp__theme_light) {
-  --dp-primary-color: #0077ff !important;
+  --dp-primary-color: $brand !important;
 }
 
 :deep(.dp__outer_menu_wrap) {
@@ -94,14 +114,11 @@ const localModelValue = computed({
 
 .data-picker-wrap {
   position: relative;
-  &:not(.invalid) {
-    &:deep .dp__input_focus {
-      box-shadow: 0 0 0 2px $brand;
-    }
-  }
+  border-radius: 30px;
+  border: 2px solid $brand;
   &.open {
     & .label {
-      top: 1.3rem;
+      top: 1.1rem;
       font-size: 12px;
       font-weight: 500;
     }
@@ -120,9 +137,8 @@ const localModelValue = computed({
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    left: 12px;
-    font-size: 14px;
-    font-family: Inter, sans-serif;
+    left: 16px;
+    font-size: 16px;
     color: $brand;
     &:hover {
       cursor: pointer;
@@ -137,33 +153,47 @@ const localModelValue = computed({
 }
 :deep(.dp__input) {
   border: 2px solid transparent !important;
-  background-color: red !important;
-  height: 4rem;
+  background-color: transparent !important;
+  height: 3.5rem;
+  color: $brand !important;
   border-radius: 16px !important;
-  color: black !important;
-  font-size: 14px;
-  font-weight: 500;
-  padding-top: 1.75rem !important;
-  padding-bottom: 0.75rem !important;
+  font-size: 16px;
+  font-weight: 400;
+  padding-top: 1.5rem !important;
+  padding-bottom: 0.5rem !important;
   transition: all 0.2s ease;
 }
-.invalid {
-  &:deep(.dp__input) {
-    box-shadow: 0 0 0 2px red !important;
-    background: orange !important;
-  }
+:deep(.dp__range_start), :deep(.dp__range_end), :deep(.dp__active_date) {
+  background-color: $brand ;
+  color: white;
+}
+:deep(.dp__range_between){
+  background-color: $purple;
 }
 .icon-wrap {
-  color: $light_red;
+  height: fit-content;
+  cursor: pointer;
+  color: $brand;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 1rem;
   transition: all 0.2s ease;
   &:hover {
     cursor: pointer;
-    color: $light_brand;
+    color: #4f3f53;
   }
 }
 .select-button {
+  width: 100%;
   height: fit-content !important;
   padding: 5px !important;
   font-weight: 400 !important;
+}
+.action-row{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
 }
 </style>

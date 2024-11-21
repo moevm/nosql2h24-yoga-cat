@@ -40,10 +40,8 @@ const applyFilters = async() => {
 }
 onMounted(async()=> {
   try{
-
     isLoading.value = true;
       await catalogStore.applyFilters()
-      console.log('exercixes', exercises.value);
   }
   catch(err){
     console.log('err', err);
