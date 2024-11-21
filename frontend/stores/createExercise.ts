@@ -20,8 +20,8 @@ export const useExerciseCreateStore = defineStore({
         title: '',
         description: '',
         technique: '',
-        contraindications: [],
-        benefit: [],
+        contraindications: ['', '', ''],
+        benefit: ['', '', ''],
         properties: {
             spine: [{
                 key: 'DEFLECTION',

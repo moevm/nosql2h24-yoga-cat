@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, watch} from 'vue'
-import {toRef} from 'vue'
 import ErrorIcon from "~/shared/icons/ErrorIcon.vue";
+import TrashIcon from '#shared/icons/TrashIcon.vue'
 type Rule = (value: (string|undefined)[]) => true | string
 type Props = {
   title: string,
@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 const count = ref(props.initialCount)
 const model = defineModel<string[]>({ default: [] })
 const addInput = () => {
-  count.value++
+  model.value[model.value.length]= '';
 }
 const errorMessage = ref<string>('');
 const validate = () => {
@@ -39,6 +39,9 @@ const validate = () => {
 defineExpose({
   validate
 })
+const moveTrash = (index: number) => {
+    model.value.splice(index, 1);
+}
 watch(() => props.initialCount, (newVal) => {
   count.value = newVal;
 }, { immediate: true });
@@ -48,9 +51,10 @@ watch(() => props.initialCount, (newVal) => {
   <div class="wrapper" :class="{ error: errorMessage.length}">
     <span :class="{required: required}" class="title">{{title}}</span>
     <div class="wrapper__inputs">
-      <div v-for="idx in count" :key="idx" class="input-wrap">
+      <div v-for="idx in model.length" :key="idx" class="input-wrap">
         <span class="input-wrap__counter">{{idx}}.</span>
         <input type="text" v-model="model[idx-1]" class="input-wrap__input" @input="errorMessage=''">
+        <TrashIcon class="trash-icon" @click="moveTrash(idx-1)"/>
       </div>
     </div>
     <div class="wrapper__info">
@@ -73,6 +77,11 @@ watch(() => props.initialCount, (newVal) => {
   padding: 0.3rem 0.75rem;
   display: flex;
   align-items: center;
+  color: $brand;
+  .trash-icon{
+    margin-left: 10px;
+    cursor: pointer;
+  }
   &__counter {
     color: $purple;
     margin-right: 0.4rem;
