@@ -23,8 +23,13 @@ export type FilterParams = {
   periphery?: Periphery[];
   stars?: Stars[];
   page?: number;
+  description?: string;
 }
 
 export type FilterReviews = {
   substring: string;
+  age: number;
+  name: string;
+  date: string;
+  stars?: Stars[];
 }

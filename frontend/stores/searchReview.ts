@@ -43,7 +43,7 @@ export const useReviewsSearchingStore = defineStore({
                     throw new Error(`HTTP error status: ${response.status}`);
                 }
                 const responseData = await response.json()
-                this.exercises = responseData;
+                this.exercises = responseData.reviews;
             } catch (error) {
                 console.error('Error:', error);
             }
@@ -60,7 +60,7 @@ export const useReviewsSearchingStore = defineStore({
                 searchParams.append('age', `${parseInt(this.authorAge)}`);
             }
             if(this.date){
-                searchParams.append('date', `${this.date}`);
+                searchParams.append('date', `${new Date(this.date)}`);
             }
             for (const star of this.stars) {
                 if (star.value) {

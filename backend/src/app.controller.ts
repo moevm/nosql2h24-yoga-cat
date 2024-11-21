@@ -28,6 +28,34 @@ export class AppController {
   }
 
 
+  @Post('/statistics')
+  async getStatistics(@Body() body: any) {
+    // Данные из formData будут содержать текстовые поля
+    const { type, date, exercise_id } = body;
+    console.log('type', body);
+    console.log('date', date);
+    console.log('exercise_id', exercise_id);
+
+    // Если date приходит как строка, нужно преобразовать его в объект
+    const parsedDate = JSON.parse(date); // Преобразуем строку в объект, если она пришла как строка
+
+    switch (type) {
+      case 'DYNAMIC':
+        return await this.appService.getDynamicStatistics(parsedDate, exercise_id);
+      // Другие типы статистики, если они будут добавлены:
+      // case 'STARS':
+      //   return await this.getStarsStatistics(parsedDate, exercise_id);
+      // case 'ASANAS_COUNT':
+      //   return await this.getAsanasCountStatistics(parsedDate, exercise_id);
+      // case 'REVIEWS_COUNT':
+      //   return await this.getReviewsCountStatistics(parsedDate, exercise_id);
+      // case 'PERCENT':
+      //   return await this.getPercentStatistics(parsedDate, exercise_id);
+      default:
+        throw new Error('Неизвестный тип статистики');
+    }
+  }
+
   @Post('/import')
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(

@@ -102,7 +102,7 @@ onMounted(async ()=> {
     </h1>
     <div class="review__content">
       <BasicInput ref="nameInput" type="text" v-model="data.name" placeholder="Имя" class="review__content__input" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']"/>
-      <BasicInput ref="ageInput"  type="text" v-model="data.age" placeholder="Возраст" class="review__content__input" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым', (val: string | number)=> !isNaN(parseInt(`${val}`)) || 'Введите число',(val: string | number)=> (isNaN(parseInt(`${val}`)) && !(parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
+      <BasicInput ref="ageInput"  type="text" v-model="data.age" placeholder="Возраст" class="review__content__input" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым', (val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',(val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
       <CustomSelect ref="asanaTitle" v-model="data.asanaTitle" :options="selectOptions" placeholder="Название асаны" :required="true" :rules="[(val:string) => `${val}`.length>0 || 'Выберите асану из предложенных']"/>
       <BasicInput ref="feelsInput" type="text" v-model="data.sensations" placeholder="Опишите свои ощущения от асаны" class="review__content__input" :required="true" :rules="[(val:string | number) => `${val}`.length>0 || 'Поле должно быть не пустым']"/>
       <div class="stars-container">

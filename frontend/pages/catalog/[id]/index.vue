@@ -34,7 +34,7 @@ const define = {
   'STRENGTH': 'Силовая',
   'FLEXIBILITY': 'Гибкостная',
   'BALANCE': 'Балансовая',
-  'OPENING_HIP_JOINTS': 'РАскрытие тазобедренных суставов',
+  'OPENING_HIP_JOINTS': 'Раскрытие тазобедренных суставов',
   'OPENING_SHOULDER_JOINTS': 'Раскрытие плечевых суставов'
 }
 const goToReviews = async ()=> {

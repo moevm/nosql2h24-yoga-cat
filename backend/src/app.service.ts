@@ -4,10 +4,11 @@ import { BSON as MyBSON } from 'bson';
 import * as fs from 'fs';
 import { FilterParams, FilterReviews } from './types/filter';
 import * as path from 'path';
+import { groupBy } from 'lodash';
 @Injectable()
 export class AppService implements OnModuleInit {
-  private readonly uri = 'mongodb://db:27017';
-  // private readonly uri = 'mongodb://127.0.0.1:27017';
+  // private readonly uri = 'mongodb://db:27017';
+  private readonly uri = 'mongodb://127.0.0.1:27017';
   private db: any;
   private gridFSBucket: GridFSBucket;
 
@@ -38,6 +39,80 @@ export class AppService implements OnModuleInit {
     });
     return filePath;
   }
+
+
+  async getDynamicStatistics(date: any, exercise_id: string) {
+    const collection = this.db.collection('exercises');
+
+    // Преобразование дат в формат, подходящий для поиска в базе данных
+    const startDate = new Date(date.start);
+    const endDate = new Date(date.end);
+
+    // Функция для генерации массива дат от startDate до endDate
+    const generateDateArray = (start: Date, end: Date): Date[] => {
+      const dates: Date[] = [];
+      let currentDate = new Date(start);
+
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return dates;
+    };
+
+    // Массив всех дат от startDate до endDate
+    const dateRange = generateDateArray(startDate, endDate);
+
+    // Запрос на получение данных за указанный период
+    const exercises = await collection.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(exercise_id),
+          'reviews.date': { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $unwind: '$reviews',
+      },
+      {
+        $match: {
+          'reviews.date': { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: '$reviews.date' }
+            }
+          },
+          avgRating: { $avg: '$reviews.rating' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: '$_id.date',
+          avgRating: 1,
+        },
+      },
+      {
+        $sort: { date: 1 }, // Сортируем по дате
+      },
+    ]).toArray();
+
+    // Преобразуем результат в два массива: даты и средние оценки
+    const dates = dateRange.map(date => date.toISOString().split('T')[0]);
+    const ratings = dates.map(date => {
+      const dayStats = exercises.find(exercise => exercise.date === date);
+      return dayStats ? dayStats.avgRating : 0;
+    });
+
+    return { dates, ratings };
+  }
+
 
 
   async getImagesChunks(): Promise<string> {
@@ -234,6 +309,10 @@ export class AppService implements OnModuleInit {
         query.push({ 'title': { $regex: filterParams.name, $options: 'i' } });
       }
 
+      if (filterParams.description && filterParams.description.length > 0) {
+        query.push({ 'description': { $regex: filterParams.description, $options: 'i' } });
+      }
+
       if (filterParams.spine && filterParams.spine.length > 0) {
         query.push({ 'properties.spine': { $in: Array.isArray(filterParams.spine) ? filterParams.spine : [filterParams.spine] } });
       }
@@ -288,52 +367,83 @@ export class AppService implements OnModuleInit {
   }
 
 
-
-  async getReviewsByText(filterParams: FilterReviews): Promise<any[]> {
+  async getReviewsByText(filterParams: FilterReviews): Promise<{
+    reviews: any[];
+  }> {
     try {
-      if (filterParams.substring == '') {
-        return [];
-      }
       const collection = this.db.collection('exercises');
-      const query = {
-        $match: {
-          reviews: {
-            $elemMatch: {
-              comment: { $regex: filterParams.substring, $options: 'i' },
-            },
+      const query: any[] = [];
+
+      if (filterParams.substring && filterParams.substring.length > 0) {
+        query.push({ 'reviews.comment': { $regex: filterParams.substring, $options: 'i' } });
+      }
+
+      if (filterParams.age) {
+        query.push({ 'reviews.age': filterParams.age });
+      }
+
+      if (filterParams.name && filterParams.name.length > 0) {
+        query.push({ 'reviews.name': { $regex: filterParams.name, $options: 'i' } });
+      }
+
+
+      if (filterParams.date) {
+        const date = new Date(filterParams.date);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        query.push({
+          'reviews.date': {
+            $gte: startOfDay,
+            $lt: endOfDay,
           },
-        },
-      };
+        });
+      }
+
+      if (filterParams.stars && filterParams.stars.length > 0) {
+        query.push({
+          'reviews.rating': { $in: Array.isArray(filterParams.stars) ? +filterParams.stars : [+filterParams.stars] },
+        });
+      }
+
+      const matchStage = query.length > 0 ? { $and: query } : {};
 
       const pipeline = [
-        query,
+        { $unwind: '$reviews' },
+        { $match: matchStage },
         {
-          $unwind: '$reviews',
-        },
-        {
-          $match: {
-            'reviews.comment': { $regex: filterParams.substring, $options: 'i' },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id',
-            title: { $first: '$title' },
-            reviews: { $push: '$reviews' },
+          $project: {
+            _id: 0,
+            exerciseId: '$_id',
+            title: 1,
+            review: '$reviews',
           },
         },
       ];
 
-      const result = await collection.aggregate(pipeline).toArray();
+      const rawReviews = await collection.aggregate(pipeline).toArray();
 
-      return result.map((exercise) => ({
-        id: exercise._id.toString(),
-        title: exercise.title,
-        reviews: exercise.reviews,
-      }));
+      const groupedReviews = groupBy(rawReviews, 'exerciseId');
+      const transformedReviews = Object.keys(groupedReviews).map(exerciseId => {
+        const reviewsForExercise = groupedReviews[exerciseId];
+        return {
+          id: exerciseId,
+          title: reviewsForExercise[0].title,
+          reviews: reviewsForExercise.map(item => item.review),
+        };
+      });
+
+      console.log('Отфильтрованные отзывы:', transformedReviews);
+
+      return {
+        reviews: transformedReviews,
+      };
     } catch (error) {
-      console.error('Ошибка при получении отзывов:', error);
-      return [];
+      console.error('Ошибка при фильтрации отзывов:', error);
+      return {
+        reviews: [],
+      };
     }
   }
 
