@@ -50,10 +50,18 @@ export const useReviewsSearchingStore = defineStore({
         },
         getQueryString() {
             const searchParams = new URLSearchParams();
-            searchParams.append('substring', `${this.substring}`);
-            searchParams.append('name', `${this.authorName}`);
-            searchParams.append('age', `${parseInt(this.authorAge)}`);
-            searchParams.append('date', `${this.date}`);
+            if(this.substring.length > 0){
+                searchParams.append('substring', `${this.substring}`);
+            }
+            if(this.authorName.length > 0){
+                searchParams.append('name', `${this.authorName}`);
+            }
+            if(this.authorAge.length > 0){
+                searchParams.append('age', `${parseInt(this.authorAge)}`);
+            }
+            if(this.date){
+                searchParams.append('date', `${this.date}`);
+            }
             for (const star of this.stars) {
                 if (star.value) {
                     searchParams.append('stars', `${star.key}`);
