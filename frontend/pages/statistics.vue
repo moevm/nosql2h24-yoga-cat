@@ -107,7 +107,7 @@ const applyFilters = () => {
   if(selectedAsana){
     exercise_id.value = selectedAsana.id;
   }
-  if(date.value.length == 2 && asanaTitleIsValid && type.value != 'BASIC'){
+  if(date.value && date.value.every((el)=>el) && asanaTitleIsValid && type.value != 'BASIC'){
     statisticsStore.getStatistics();
   }
   justMounted.value = false;
@@ -154,7 +154,7 @@ onBeforeMount(()=> {
       <span class="block_title">Выберите временной промежуток для построения статистики</span>
       <CustomDatepicker :model-value="date" :range="true" :min-date="new Date(startDate)" :max-date="new Date()" class="date" label="Промежуток дат" @update:model-value="(newValue) => date = newValue"/>
       <transition name="error">
-        <div v-if="justMounted==false && date.length != 2" class="error-message">
+        <div v-if="justMounted==false && (!date || date.some((el)=> !el))" class="error-message">
           <ErrorIcon class="error-icon" />
           <span class="error text-xs text-red-500">
             {{ 'Необходимо выбрать промежуток дат' }}

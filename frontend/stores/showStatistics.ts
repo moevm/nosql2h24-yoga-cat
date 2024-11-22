@@ -3,7 +3,7 @@ import type { StatisticType } from '~/types/exercise';
 
 type showStatisticsState = {
     type: StatisticType;
-    date: Date[];
+    date: Date[] | null;
     exercise_id: string;
     cur_type: StatisticType;
     labels: string[];
@@ -14,7 +14,7 @@ export const useStatisticsStore = defineStore({
     id: 'statisticsStore',
     state: (): showStatisticsState => ({
         type: 'BASIC',
-        date: [],
+        date: null,
         exercise_id: '',
         labels: [],
         data: [],
