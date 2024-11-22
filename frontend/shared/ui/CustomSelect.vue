@@ -67,8 +67,13 @@ function validate() {
   }
   return errorMessage.value.length === 0;
 }
+
+function resetError() {
+  errorMessage.value = '';
+}
 defineExpose({
   validate,
+  resetError,
 });
 </script>
 

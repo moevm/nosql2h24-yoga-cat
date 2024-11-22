@@ -14,7 +14,7 @@ export type PositionInSpace =
 export type LoadAccents = 'STRENGTH' | 'FLEXIBILITY' | 'BALANCE'
 export type Periphery = 'OPENING_HIP_JOINTS' | 'OPENING_SHOULDER_JOINTS'
 export type Stars = 5 | 4 | 3 | 2 | 1
-export type StatisticType = 'DYNAMIC' | 'STARS' | 'ASANAS_COUNT' | 'REVIEWS_COUNT' | 'PERCENT'
+export type StatisticType = 'DYNAMIC' | 'STARS' | 'ASANAS_COUNT' | 'REVIEWS_COUNT' | 'PERCENT' | 'BASIC'
 export type Properties = {
   spine: { key: SpineType, value: boolean, title: string }[],
   positionInSpace: { key: PositionInSpace, value: boolean, title: string }[],

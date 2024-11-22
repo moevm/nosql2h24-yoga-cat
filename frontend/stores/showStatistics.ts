@@ -15,7 +15,7 @@ type showStatisticsState = {
 export const useStatisticsStore = defineStore({
     id: 'statisticsStore',
     state: (): showStatisticsState => ({
-        type: '',
+        type: 'BASIC',
         date: [],
         exercise_id: '',
         header: '',
