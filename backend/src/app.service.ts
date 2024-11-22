@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { BSON, MongoClient, ObjectId, GridFSBucket, GridFSBucketWriteStream } from 'mongodb';
 import { BSON as MyBSON } from 'bson';
 import * as fs from 'fs';
-import { FilterParams, FilterReviews } from './types/filter';
+import { FilterParams, FilterReviews, LoadAccents, Periphery, PositionInSpace, SpineType } from './types/filter';
 import * as path from 'path';
 import { groupBy } from 'lodash';
 @Injectable()
@@ -40,15 +40,30 @@ export class AppService implements OnModuleInit {
     return filePath;
   }
 
+  async getFirstReviewDate(): Promise<Date | null> {
+    const collection = this.db.collection('exercises');
+
+    const result = await collection.aggregate([
+      { $sort: { dateAdd: 1 } },
+      { $limit: 1 },
+      { $project: { _id: 0, dateAdd: 1 } }
+    ]).toArray();
+
+    return result[0]?.dateAdd || null;
+  }
+
+
 
   async getDynamicStatistics(date: any, exercise_id: string) {
     const collection = this.db.collection('exercises');
+    const startDate = new Date(date[0]);
+    startDate.setHours(3, 0, 0, 0);
 
-    // Преобразование дат в формат, подходящий для поиска в базе данных
-    const startDate = new Date(date.start);
-    const endDate = new Date(date.end);
+    const endDate = new Date(date[1]);
+    endDate.setDate(endDate.getDate() + 1);
+    endDate.setHours(2, 59, 59, 999);
 
-    // Функция для генерации массива дат от startDate до endDate
+    console.log("date",startDate, endDate );
     const generateDateArray = (start: Date, end: Date): Date[] => {
       const dates: Date[] = [];
       let currentDate = new Date(start);
@@ -57,14 +72,12 @@ export class AppService implements OnModuleInit {
         dates.push(new Date(currentDate));
         currentDate.setDate(currentDate.getDate() + 1);
       }
-
+      console.log("datessssssss",dates );
       return dates;
     };
 
-    // Массив всех дат от startDate до endDate
     const dateRange = generateDateArray(startDate, endDate);
 
-    // Запрос на получение данных за указанный период
     const exercises = await collection.aggregate([
       {
         $match: {
@@ -99,11 +112,10 @@ export class AppService implements OnModuleInit {
         },
       },
       {
-        $sort: { date: 1 }, // Сортируем по дате
+        $sort: { date: 1 },
       },
     ]).toArray();
 
-    // Преобразуем результат в два массива: даты и средние оценки
     const dates = dateRange.map(date => date.toISOString().split('T')[0]);
     const ratings = dates.map(date => {
       const dayStats = exercises.find(exercise => exercise.date === date);
@@ -111,6 +123,261 @@ export class AppService implements OnModuleInit {
     });
 
     return { dates, ratings };
+  }
+
+
+  async getStarsStatistics(): Promise<any> {
+    try {
+      const collection = this.db.collection('exercises');
+
+      const result = await collection.aggregate([
+        {
+          $group: {
+            _id: '$rating',
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $sort: { _id: -1 },
+        },
+      ]).toArray();
+
+      const ratings = [5, 4, 3, 2, 1];
+      const counts = ratings.map((rating) => {
+        const group = result.find((item) => item._id === rating);
+        return group ? group.count : 0;
+      });
+
+      return {
+        ratings,
+        counts,
+      };
+    } catch (error) {
+      console.error('Ошибка при получении статистики асан:', error);
+      throw error;
+    }
+  }
+
+  async getAsanasCountStatistics(date: any) {
+    const collection = this.db.collection('exercises');
+
+    const startDate = new Date(date[0]);
+    startDate.setHours(3, 0, 0, 0);
+
+    const endDate = new Date(date[1]);
+    endDate.setDate(endDate.getDate() + 1);
+    endDate.setHours(2, 59, 59, 999);
+
+    const generateDateArray = (start: Date, end: Date): Date[] => {
+      const dates: Date[] = [];
+      let currentDate = new Date(start);
+
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return dates;
+    };
+
+    const dateRange = generateDateArray(startDate, endDate);
+
+    const asanas = await collection.aggregate([
+      {
+        $match: {
+          dateAdd: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: '$dateAdd' },
+            },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: '$_id.date',
+          count: 1,
+        },
+      },
+      {
+        $sort: { date: 1 },
+      },
+    ]).toArray();
+
+    const dates = dateRange.map((date) => date.toISOString().split('T')[0]);
+    const counts = dates.map((date) => {
+      const dayStats = asanas.find((asana) => asana.date === date);
+      return dayStats ? dayStats.count : 0;
+    });
+
+    return { dates, counts };
+  }
+
+  async getReviewsCountStatistics(date: [string, string]) {
+    const collection = this.db.collection('exercises');
+
+    const startDate = new Date(date[0]);
+    startDate.setHours(3, 0, 0, 0);
+
+    const endDate = new Date(date[1]);
+    endDate.setDate(endDate.getDate() + 1);
+    endDate.setHours(2, 59, 59, 999);
+
+    const generateDateArray = (start: Date, end: Date): Date[] => {
+      const dates: Date[] = [];
+      let currentDate = new Date(start);
+
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return dates;
+    };
+
+    const dateRange = generateDateArray(startDate, endDate);
+
+    const reviews = await collection.aggregate([
+      {
+        $unwind: '$reviews',
+      },
+      {
+        $match: {
+          'reviews.date': { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: '$reviews.date' },
+            },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: '$_id.date',
+          count: 1,
+        },
+      },
+      {
+        $sort: { date: 1 },
+      },
+    ]).toArray();
+
+    const dates = dateRange.map((date) => date.toISOString().split('T')[0]);
+    const counts = dates.map((date) => {
+      const dayStats = reviews.find((review) => review.date === date);
+      return dayStats ? dayStats.count : 0;
+    });
+
+    return { dates, counts };
+  }
+
+
+  async getPercentStatistics() {
+    const collection = this.db.collection('exercises');
+
+    const exercises = await collection.find({}).toArray();
+
+    const spineCounts = { DEFLECTION: 0, INCLINE: 0, TWIST: 0, LATERAL_TILT: 0, NOTHING: 0 };
+    const positionInSpaceCounts = {
+      STANDING_ON_HANDS: 0,
+      STANDING_ON_FEET: 0,
+      SITTING: 0,
+      LYING_ON_STOMACH: 0,
+      LYING_ON_BACK: 0,
+      LYING_ON_YOUR_SIDE: 0,
+      TURNED_OVER: 0,
+      NOTHING: 0
+    };
+    const loadAccentCounts = { STRENGTH: 0, FLEXIBILITY: 0, BALANCE: 0, NOTHING: 0 };
+    const peripheryCounts = { OPENING_HIP_JOINTS: 0, OPENING_SHOULDER_JOINTS: 0, NOTHING: 0 };
+
+    let totalExercises = 0;
+
+    exercises.forEach((exercise) => {
+      totalExercises++;
+
+      if (exercise.properties?.spine) {
+        if(exercise.properties.spine.length==0){
+          spineCounts['NOTHING']++;
+        }
+        exercise.properties.spine.forEach((spineType: SpineType) => {
+          if (spineCounts[spineType] !== undefined) {
+            spineCounts[spineType]++;
+          }
+        });
+      }
+
+
+      if (exercise.properties?.positionInSpace) {
+        if(exercise.properties.positionInSpace.length==0){
+          positionInSpaceCounts['NOTHING']++;
+        }
+        exercise.properties.positionInSpace.forEach((position: PositionInSpace) => {
+          if (positionInSpaceCounts[position] !== undefined) {
+            positionInSpaceCounts[position]++;
+          }
+        });
+      }
+
+      if (exercise.properties?.loadAccent) {
+        if(exercise.properties.loadAccent.length==0){
+          loadAccentCounts['NOTHING']++;
+        }
+        exercise.properties.loadAccent.forEach((accent: LoadAccents) => {
+          if (loadAccentCounts[accent] !== undefined) {
+            loadAccentCounts[accent]++;
+          }
+        });
+      }
+
+      if (exercise.properties?.periphery) {
+        if(exercise.properties.periphery.length==0){
+          peripheryCounts['NOTHING']++;
+        }
+        exercise.properties.periphery.forEach((peripheral: Periphery) => {
+          if (peripheryCounts[peripheral] !== undefined) {
+            peripheryCounts[peripheral]++;
+          }
+        });
+      }
+    });
+
+    console.log("dede",spineCounts );
+
+    const calculatePercentage = (count: number) => ((count / totalExercises) * 100).toFixed(2);
+
+    const result = {
+      spine: Object.keys(spineCounts).map((key) => ({
+        name: key,
+        percent: calculatePercentage(spineCounts[key]),
+      })),
+      positionInSpace: Object.keys(positionInSpaceCounts).map((key) => ({
+        name: key,
+        percent: calculatePercentage(positionInSpaceCounts[key]),
+      })),
+      loadAccent: Object.keys(loadAccentCounts).map((key) => ({
+        name: key,
+        percent: calculatePercentage(loadAccentCounts[key]),
+      })),
+      periphery: Object.keys(peripheryCounts).map((key) => ({
+        name: key,
+        percent: calculatePercentage(peripheryCounts[key]),
+      })),
+    };
+
+    return result;
   }
 
 
