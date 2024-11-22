@@ -120,7 +120,7 @@ defineExpose({
   .selected {
     width: 100%;
     border-radius: 5rem;
-    z-index: 400;
+    z-index: 4;
     border: 1px solid #ccc;
     background-color: $light-brand;
     &.error{
@@ -178,7 +178,9 @@ defineExpose({
 }
 
 .dropdown {
-  overflow: hidden;
+  max-height: 300px;
+  overflow: auto;
+  @include thin-scrollbar;
   border-radius: 20px;
   position: absolute;
   top: 100%;
@@ -186,7 +188,7 @@ defineExpose({
   right: 0;
   border: 1px solid #ccc;
   background-color: $light-brand;
-  z-index: 5;
+  z-index: 4;
 }
 
 .option {
