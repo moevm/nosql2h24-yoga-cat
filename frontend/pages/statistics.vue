@@ -1,30 +1,109 @@
 <script setup lang="ts">
-import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { useStatisticsStore } from '~/stores/showStatistics';
 import {storeToRefs} from "pinia";
-import BasicButton from "#shared/ui/BasicButton.vue";
+import BasicButton from "~/shared/ui/BasicButton.vue";
 import CustomSelect from '~/shared/ui/CustomSelect.vue';
 import {ref, onMounted, reactive, onBeforeMount} from 'vue'
 import type {Exercise} from "~/types/exercise";
 import ErrorIcon from "#shared/icons/ErrorIcon.vue";
 import CustomDatepicker from "~/shared/ui/CustomDatepicker.vue";
+import { Chart as ChartJS, Tooltip, BarElement, CategoryScale, LinearScale } from 'chart.js'
+import { Bar } from 'vue-chartjs'
+
 const statisticsStore = useStatisticsStore();
-const {type, date, exercise_id} = storeToRefs(statisticsStore);
+const {type, date, exercise_id, data, labels, cur_type} = storeToRefs(statisticsStore);
 const selectOptions = ref<{id: string, value: string}[]>([]);
-const data = reactive({
+const form_data = reactive({
   asanaTitle: '',
 });
 
 const asanaTitle = ref();
 const justMounted = ref(true);
+const startDate = ref('');
+
+const statistic_prop = {
+  'DYNAMIC': {xTitle: 'Дата', yTitle: 'Оценка', label: 'Средняя оценка по отзывам'},
+  'STARS': {xTitle: 'Оценка', yTitle: 'Количество', label: 'Количество асан'},
+  'ASANAS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество добавленных асан'},
+  'REVIEWS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество написанных отзывов'},
+}
+const chart_data = (label: string) => {
+  return {
+    labels: labels.value,
+    datasets: [
+      {
+        backgroundColor: ['#66546B'],
+        data: data.value,
+        label: label
+      }
+    ]
+  }
+}
+
+const options = (x: string, y: string) => {
+  return {responsive: true,
+    scales: {
+      x: {
+        ticks: {
+          font: {
+            size: 18,
+            family: "'Century Gothic', sans-serif"
+          }
+        },
+        display: true,
+        title: {
+          display: true,
+          text: x,
+          padding: {top: 0, left: 0, right: 0, bottom: 0},
+          font: {
+            size: 25,
+            family: "'Century Gothic', sans-serif"
+          }
+        },
+        grid: {
+          display: false
+        },
+        border: {
+          color: '#66546B',
+        }
+      },
+      y: {
+        ticks: {
+          font: {
+            size: 18,
+            family: "'Century Gothic', sans-serif"
+          }
+        },
+        display: true,
+        title: {
+          display: true,
+          text: y,
+          padding: {top: 0, left: 0, right: 0, bottom: 0},
+          font: {
+            size: 25,
+            family: "'Century Gothic', sans-serif"
+          }
+        },
+        grid: {
+          display: false
+        },
+        border: {
+          color: '#66546B',
+        }
+      }
+    }
+  }
+}
+
+ChartJS.register(Tooltip, BarElement, CategoryScale, LinearScale)
 
 const applyFilters = () => {
   let asanaTitleIsValid = true;
   if(type.value == 'DYNAMIC'){
     asanaTitleIsValid = asanaTitle.value?.validate()
   }
-  const selectedAsana = selectOptions.value.find((opt)=> opt.value===data.asanaTitle);
+  const selectedAsana = selectOptions.value.find((opt)=> opt.value===form_data.asanaTitle);
   if(selectedAsana){
     exercise_id.value = selectedAsana.id;
   }
@@ -50,6 +129,17 @@ onMounted(async ()=> {
   } catch (error) {
     console.error('Error:', error);
   }
+  try {
+    const url = `http://localhost:8080/firstdate`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error status: ${response.status}`);
+    }
+    const responseData = await response.json()
+    startDate.value = responseData.firstDate;
+  } catch (error) {
+    console.error('Error:', error);
+  }
 })
 
 onBeforeMount(()=> {
@@ -62,7 +152,7 @@ onBeforeMount(()=> {
     <h1>Статистика</h1>
     <div class="date-block">
       <span class="block_title">Выберите временной промежуток для построения статистики</span>
-      <CustomDatepicker :model-value="date" :range="true" :max-date="new Date()" class="date" label="Промежуток дат" @update:model-value="(newValue) => date = newValue"/>
+      <CustomDatepicker :model-value="date" :range="true" :min-date="new Date(startDate)" :max-date="new Date()" class="date" label="Промежуток дат" @update:model-value="(newValue) => date = newValue"/>
       <transition name="error">
         <div v-if="justMounted==false && date.length != 2" class="error-message">
           <ErrorIcon class="error-icon" />
@@ -88,7 +178,7 @@ onBeforeMount(()=> {
       <div class="radio_block">
         <input type="radio" id="dynamic" value="DYNAMIC" v-model="type"/>
         <label for="dynamic" class="label">Динамика оценок на асану за выбранный период</label>
-        <CustomSelect ref="asanaTitle" class="asana_selector" v-model="data.asanaTitle" :required="type=='DYNAMIC'" :options="selectOptions" placeholder="Название асаны" :rules="[(val:string) => `${val}`.length>0 || 'Выберите асану из предложенных']"/>
+        <CustomSelect ref="asanaTitle" class="asana_selector" v-model="form_data.asanaTitle" :required="type=='DYNAMIC'" :options="selectOptions" placeholder="Название асаны" :rules="[(val:string) => `${val}`.length>0 || 'Выберите асану из предложенных']"/>
       </div>
       <div class="radio_block">
         <input type="radio" id="stars" value="STARS" v-model="type" @click="changeType"/>
@@ -108,6 +198,7 @@ onBeforeMount(()=> {
       </div>
     </div>
     <BasicButton class="btn" @click="applyFilters">ПОСТРОИТЬ</BasicButton>
+    <Bar v-if="cur_type!='BASIC' && cur_type!='PERCENT'" style="max-width: 90%; max-height: 30rem" :data="chart_data(statistic_prop[cur_type].label)" :options="options(statistic_prop[cur_type].xTitle, statistic_prop[cur_type].yTitle)" />
   </div>
 </template>
 

@@ -5,11 +5,9 @@ type showStatisticsState = {
     type: StatisticType;
     date: Date[];
     exercise_id: string;
-    header: string;
-    description: string;
+    cur_type: StatisticType;
     labels: string[];
     data: number[];
-    legend: string[];
 }
 
 export const useStatisticsStore = defineStore({
@@ -18,11 +16,9 @@ export const useStatisticsStore = defineStore({
         type: 'BASIC',
         date: [],
         exercise_id: '',
-        header: '',
-        description: '',
         labels: [],
         data: [],
-        legend: [],
+        cur_type: 'BASIC',
     }),
     actions: {
         async getStatistics() {
@@ -34,18 +30,33 @@ export const useStatisticsStore = defineStore({
             try {
                 const response = await fetch('http://localhost:8080/statistics', {
                     method: 'POST',
-                    body: formData,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        exercise_id: this.exercise_id,
+                        date: this.date,
+                        type: this.type,
+                    }),
                 });
 
                 if (!response.ok) {
                     throw new Error(`Ошибка: ${response.statusText}`);
                 }
+                this.cur_type = this.type;
                 const responseData = await response.json()
-                this.header = responseData.header;
-                this.description = responseData.description;
-                this.labels = responseData.labels;
-                this.data = responseData.data;
-                this.legend = responseData.legend;
+                if(this.type=='STARS'){
+                    this.data = responseData.counts;
+                    this.labels = responseData.ratings;
+                }
+                else if(this.type=='DYNAMIC'){
+                    this.data = responseData.ratings;
+                    this.labels = responseData.dates;
+                }
+                else if(this.type=='ASANAS_COUNT' || this.type=='REVIEWS_COUNT'){
+                    this.data = responseData.counts;
+                    this.labels = responseData.dates;
+                }
             } catch (error) {
                 console.error('Ошибка при получении статистики:', error);
             }
