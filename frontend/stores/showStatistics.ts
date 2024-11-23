@@ -8,6 +8,10 @@ type showStatisticsState = {
     cur_type: StatisticType;
     labels: string[];
     data: number[];
+    loadAccent: any[];
+    periphery: any[];
+    positionInSpace: any[];
+    spine: any[];
 }
 
 export const useStatisticsStore = defineStore({
@@ -18,6 +22,10 @@ export const useStatisticsStore = defineStore({
         exercise_id: '',
         labels: [],
         data: [],
+        loadAccent: [],
+        periphery: [],
+        positionInSpace: [],
+        spine: [],
         cur_type: 'BASIC',
     }),
     actions: {
@@ -44,7 +52,7 @@ export const useStatisticsStore = defineStore({
                     throw new Error(`Ошибка: ${response.statusText}`);
                 }
                 this.cur_type = this.type;
-                const responseData = await response.json()
+                const responseData = await response.json();
                 if(this.type=='STARS'){
                     this.data = responseData.counts;
                     this.labels = responseData.ratings;
@@ -56,6 +64,12 @@ export const useStatisticsStore = defineStore({
                 else if(this.type=='ASANAS_COUNT' || this.type=='REVIEWS_COUNT'){
                     this.data = responseData.counts;
                     this.labels = responseData.dates;
+                }
+                else if(this.type=='PERCENT'){
+                    this.loadAccent = responseData.loadAccent;
+                    this.periphery = responseData.periphery;
+                    this.positionInSpace = responseData.positionInSpace;
+                    this.spine = responseData.spine;
                 }
             } catch (error) {
                 console.error('Ошибка при получении статистики:', error);
