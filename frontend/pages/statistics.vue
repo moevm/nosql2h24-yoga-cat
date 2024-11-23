@@ -12,7 +12,7 @@ import { Chart as ChartJS, Tooltip, BarElement, CategoryScale, LinearScale } fro
 import { Bar } from 'vue-chartjs'
 
 const statisticsStore = useStatisticsStore();
-const {type, date, exercise_id, data, labels, cur_type} = storeToRefs(statisticsStore);
+const {type, date, exercise_id, data, labels, cur_type, loadAccent, periphery, positionInSpace, spine} = storeToRefs(statisticsStore);
 const selectOptions = ref<{id: string, value: string}[]>([]);
 const form_data = reactive({
   asanaTitle: '',
@@ -27,14 +27,22 @@ const statistic_prop = {
   'STARS': {xTitle: 'Оценка', yTitle: 'Количество', label: 'Количество асан'},
   'ASANAS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество добавленных асан'},
   'REVIEWS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество написанных отзывов'},
-}
-const chart_data = (label: string) => {
+};
+
+const types_prop = {
+  'STRENGTH': 'Силовая', 'FLEXIBILITY': 'Силовая', 'BALANCE': 'Силовая', 'NOTHING': 'Ничего',
+  'OPENING_HIP_JOINTS': 'Раскр. тазоб. суставов', 'OPENING_SHOULDER_JOINTS': 'Раскр. плеч. суставов',
+  'STANDING_ON_HANDS': 'Стоя на руках', 'STANDING_ON_FEET': 'Стоя на ногах', 'SITTING': 'Сидя', 'LYING_ON_STOMACH': 'Лежа на животе',
+  'LYING_ON_BACK': 'Лежа на спине', 'LYING_ON_YOUR_SIDE': 'Лежа на боку', 'TURNED_OVER': 'Перевернутые', 'DEFLECTION': 'Прогиб',
+  'INCLINE': 'Наклон', 'TWIST': 'Скрутка', 'LATERAL_TILT': 'Боковой наклон'
+};
+const chart_data = (label: string, labels: string[], dataset: any[]) => {
   return {
-    labels: labels.value,
+    labels: labels,
     datasets: [
       {
         backgroundColor: ['#66546B'],
-        data: data.value,
+        data: dataset,
         label: label
       }
     ]
@@ -198,7 +206,25 @@ onBeforeMount(()=> {
       </div>
     </div>
     <BasicButton class="btn" @click="applyFilters">ПОСТРОИТЬ</BasicButton>
-    <Bar v-if="cur_type!='BASIC' && cur_type!='PERCENT'" style="max-width: 90%; max-height: 30rem" :data="chart_data(statistic_prop[cur_type].label)" :options="options(statistic_prop[cur_type].xTitle, statistic_prop[cur_type].yTitle)" />
+    <Bar v-if="cur_type!='BASIC' && cur_type!='PERCENT'" style="max-width: 90%; max-height: 30rem" :data="chart_data(statistic_prop[cur_type].label, labels, data)" :options="options(statistic_prop[cur_type].xTitle, statistic_prop[cur_type].yTitle)" />
+    <div class="stat_block" v-if="cur_type=='PERCENT'">
+      <div class="hist_block">
+        <div class="hist_title">Акценты нагрузки</div>
+        <Bar style="max-width: 100%; max-height: 25rem" :data="chart_data('Процентная доля', loadAccent.map(row => types_prop[row.name]), loadAccent.map(row => row.percent))" :options="options('Тип акцента нагрузки', 'Процентная доля')"  />
+      </div>
+      <div class="hist_block">
+        <div class="hist_title">Периферия</div>
+        <Bar style="max-width: 100%; max-height: 25rem" :data="chart_data('Процентная доля', periphery.map(row => types_prop[row.name]), periphery.map(row => row.percent))" :options="options('Тип периферии', 'Процентная доля')"  />
+      </div>
+      <div class="hist_block">
+        <div class="hist_title">Положение в пространстве</div>
+        <Bar style="max-width: 100%; max-height: 25rem" :data="chart_data('Процентная доля', positionInSpace.map(row => types_prop[row.name]), positionInSpace.map(row => row.percent))" :options="options('Тип положения в пространстве', 'Процентная доля')"  />
+      </div>
+      <div class="hist_block">
+        <div class="hist_title">Позвоночник</div>
+        <Bar style="max-width: 100%; max-height: 25rem" :data="chart_data('Процентная доля', spine.map(row => types_prop[row.name]), spine.map(row => row.percent))" :options="options('Тип положения позвоночника', 'Процентная доля')"  />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -265,6 +291,32 @@ onBeforeMount(()=> {
     font-weight: 400;
     font-size: 1.8rem;
     margin-bottom: 1rem;
+  }
+  .stat_block {
+    width: 100%;
+    padding: 1rem 5rem 1rem 5rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 2.5rem;
+    column-gap: 1.5rem;
+    .hist_block{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      .hist_title{
+        color: $brand;
+        padding: 0.8rem;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 100%;
+        display: inline-block;
+        font-weight: 400;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+    }
   }
 }
 .error-message {
