@@ -20,6 +20,7 @@ const form_data = reactive({
 
 const asanaTitle = ref();
 const justMounted = ref(true);
+const dateError = ref(false);
 const startDate = ref('');
 
 const statistic_prop = {
@@ -107,16 +108,22 @@ const options = (x: string, y: string) => {
 ChartJS.register(Tooltip, BarElement, CategoryScale, LinearScale)
 
 const applyFilters = () => {
-  let asanaTitleIsValid = true;
-  if(type.value == 'DYNAMIC'){
-    asanaTitleIsValid = asanaTitle.value?.validate()
-  }
-  const selectedAsana = selectOptions.value.find((opt)=> opt.value===form_data.asanaTitle);
-  if(selectedAsana){
-    exercise_id.value = selectedAsana.id;
-  }
-  if(date.value && date.value.every((el)=>el) && asanaTitleIsValid && type.value != 'BASIC'){
-    statisticsStore.getStatistics();
+  if(type.value != 'BASIC'){
+    let asanaTitleIsValid = true;
+    if(type.value == 'DYNAMIC'){
+      asanaTitleIsValid = asanaTitle.value?.validate()
+    }
+    const selectedAsana = selectOptions.value.find((opt)=> opt.value===form_data.asanaTitle);
+    if(selectedAsana){
+      exercise_id.value = selectedAsana.id;
+    }
+    if(((date.value && date.value.every((el)=>el)) || type.value == "STARS" || type.value == "PERCENT") && asanaTitleIsValid){
+      statisticsStore.getStatistics();
+      dateError.value = false;
+    }
+    else {
+      dateError.value = true;
+    }
   }
   justMounted.value = false;
 }
@@ -162,7 +169,7 @@ onBeforeMount(()=> {
       <span class="block_title">Выберите временной промежуток для построения статистики</span>
       <CustomDatepicker :model-value="date" :range="true" :min-date="new Date(startDate)" :max-date="new Date()" class="date" label="Промежуток дат" @update:model-value="(newValue) => date = newValue"/>
       <transition name="error">
-        <div v-if="justMounted==false && (!date || date.some((el)=> !el))" class="error-message">
+        <div v-if="dateError && (!date || date.some((el)=> !el)) && type!='STARS' && type!='PERCENT' && type!='BASIC'" class="error-message">
           <ErrorIcon class="error-icon" />
           <span class="error text-xs text-red-500">
             {{ 'Необходимо выбрать промежуток дат' }}
@@ -189,16 +196,16 @@ onBeforeMount(()=> {
         <CustomSelect ref="asanaTitle" class="asana_selector" v-model="form_data.asanaTitle" :required="type=='DYNAMIC'" :options="selectOptions" placeholder="Название асаны" :rules="[(val:string) => `${val}`.length>0 || 'Выберите асану из предложенных']"/>
       </div>
       <div class="radio_block">
-        <input type="radio" id="stars" value="STARS" v-model="type" @click="changeType"/>
-        <label for="stars" class="label">Количество асан с оценками 5,4,3,2,1 звёзд</label>
-      </div>
-      <div class="radio_block">
         <input type="radio" id="asanas_count" value="ASANAS_COUNT" v-model="type"/>
         <label for="asanas_count" class="label">Количество асан, загруженных в каждый день выбранного периода</label>
       </div>
       <div class="radio_block">
         <input type="radio" id="reviews_count" value="REVIEWS_COUNT" v-model="type"/>
         <label for="reviews_count" class="label">Количество отзывов, написанных в каждый день выбранного периода</label>
+      </div>
+      <div class="radio_block">
+        <input type="radio" id="stars" value="STARS" v-model="type" @click="changeType"/>
+        <label for="stars" class="label">Количество асан с оценками 5,4,3,2,1 звёзд</label>
       </div>
       <div class="radio_block">
         <input type="radio" id="percent" value="PERCENT" v-model="type"/>
