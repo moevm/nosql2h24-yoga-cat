@@ -31,7 +31,7 @@ const statistic_prop = {
 };
 
 const types_prop = {
-  'STRENGTH': 'Силовая', 'FLEXIBILITY': 'Силовая', 'BALANCE': 'Силовая', 'NOTHING': 'Ничего',
+  'STRENGTH': 'Силовая', 'FLEXIBILITY': 'Гибкостная', 'BALANCE': 'Балансовая', 'NOTHING': 'Ничего',
   'OPENING_HIP_JOINTS': 'Раскр. тазоб. суставов', 'OPENING_SHOULDER_JOINTS': 'Раскр. плеч. суставов',
   'STANDING_ON_HANDS': 'Стоя на руках', 'STANDING_ON_FEET': 'Стоя на ногах', 'SITTING': 'Сидя', 'LYING_ON_STOMACH': 'Лежа на животе',
   'LYING_ON_BACK': 'Лежа на спине', 'LYING_ON_YOUR_SIDE': 'Лежа на боку', 'TURNED_OVER': 'Перевернутые', 'DEFLECTION': 'Прогиб',
