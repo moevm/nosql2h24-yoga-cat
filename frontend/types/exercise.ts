@@ -38,7 +38,7 @@ export type Exercise = {
 export type Review = {
   _id: string,
   name: string,
-  age: string,
+  age: number,
   rating: number,
   comment: string,
   date: string

@@ -65,7 +65,7 @@ onBeforeMount(()=> {
               <BasicInput ref="minAgeInput" type="text" v-model="minAuthorAge" placeholder="От" class="text_input" :rules="[
                 (val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',
                 (val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет',
-                (val: string | number) => !val || (!isNaN(parseInt(`${val}`)) && parseInt(`${val}`) >= 16 && (!isNaN(parseInt(`${maxAuthorAge}`)) && parseInt(`${maxAuthorAge}`) >= 16 && +maxAuthorAge > +val)) || (parseInt(`${maxAuthorAge}`) < 16 || !maxAuthorAge || 'Минимальный возраст должен быть меньше максимального')]"/>
+                (val: string | number) => !val || (!isNaN(parseInt(`${val}`)) && parseInt(`${val}`) >= 16 && (!isNaN(parseInt(`${maxAuthorAge}`)) && parseInt(`${maxAuthorAge}`) >= 16 && +maxAuthorAge >= +val)) || (parseInt(`${maxAuthorAge}`) < 16 || !maxAuthorAge || 'Минимальный возраст должен быть меньше максимального')]"/>
               <BasicInput ref="maxAgeInput" type="text" v-model="maxAuthorAge" placeholder="До" class="text_input" :rules="[(val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',(val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
             </div>
           </div>
