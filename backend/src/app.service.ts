@@ -616,7 +616,7 @@ export class AppService implements OnModuleInit {
 
       for (let exercise of exercises) {
         if (exercise.img) {
-          const imageBuffer = await this.getImageById(exercise.img.toString()); // Получаем изображение по ID из GridFS
+          const imageBuffer = await this.getImageById(exercise.img.toString());
           if (imageBuffer) {
             exercise.img = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
           }
@@ -646,36 +646,91 @@ export class AppService implements OnModuleInit {
       }
 
       if (filterParams.age) {
-        query.push({ 'reviews.age': filterParams.age });
+        const ageRange = JSON.parse(filterParams.age);
+        if (ageRange.max && ageRange.min) {
+          console.log("qqq", ageRange.max, ageRange.min );
+          query.push({
+            'reviews.age': {
+              $gte: ageRange.min,
+              $lte: ageRange.max,
+            },
+          });
+        }
+        else {
+          if(ageRange.max && !ageRange.min) {
+            query.push({
+              'reviews.age': {
+                $gte: 16,
+                $lte: ageRange.max,
+              },
+            });
+          }
+          else{
+            query.push({
+              'reviews.age': {
+                $gte: ageRange.min,
+                $lte: 200,
+              },
+            });
+          }
+        }
       }
 
       if (filterParams.name && filterParams.name.length > 0) {
         query.push({ 'reviews.name': { $regex: filterParams.name, $options: 'i' } });
       }
 
-
       if (filterParams.date) {
-        const date = new Date(filterParams.date);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(startOfDay);
-        endOfDay.setHours(23, 59, 59, 999);
+        const dateRange = JSON.parse(filterParams.date);
+        if (dateRange.max && dateRange.max) {
+          const startOfDay = new Date(dateRange.min);
+          startOfDay.setHours(0, 0, 0, 0);
 
-        query.push({
-          'reviews.date': {
-            $gte: startOfDay,
-            $lt: endOfDay,
-          },
-        });
+          const endOfDay = new Date(dateRange.max);
+          endOfDay.setHours(23, 59, 59, 999);
+
+          query.push({
+            'reviews.date': {
+              $gte: startOfDay,
+              $lte: endOfDay,
+            },
+          });
+        }
+        else{
+          if(dateRange.min) {
+            const startOfDay = new Date(dateRange.min);
+            startOfDay.setHours(3, 0, 0, 0);
+            const endOfDay = new Date(dateRange.min);
+            endOfDay.setHours(23, 59, 59, 999);
+            query.push({
+              'reviews.date': {
+                $gte: startOfDay,
+                $lte: endOfDay,
+              },
+            });
+          }
+          else {
+            const startOfDay = new Date(dateRange.max);
+            startOfDay.setHours(3, 0, 0, 0);
+            const endOfDay = new Date(dateRange.max);
+            endOfDay.setHours(23, 59, 59, 999);
+            query.push({
+              'reviews.date': endOfDay,
+            });
+          }
+        }
       }
 
       if (filterParams.stars && filterParams.stars.length > 0) {
         query.push({
-          'reviews.rating': { $in: Array.isArray(filterParams.stars) ? +filterParams.stars : [+filterParams.stars] },
+          'reviews.rating': {
+            $in: Array.isArray(filterParams.stars) ? filterParams.stars.map(Number) : [+filterParams.stars],
+          },
         });
       }
 
       const matchStage = query.length > 0 ? { $and: query } : {};
-
+      console.log("query", query);
       const pipeline = [
         { $unwind: '$reviews' },
         { $match: matchStage },
