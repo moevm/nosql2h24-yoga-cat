@@ -5,17 +5,19 @@ import ReviewCard from '~/entities/ReviewCard.vue'
 import SearchIcon from "~/shared/icons/SearchIcon.vue";
 import {storeToRefs} from "pinia";
 import {useReviewsSearchingStore} from "~/stores/searchReview";
-import { onBeforeMount, ref } from 'vue'
+import { onBeforeMount, ref, onMounted , computed} from 'vue'
 import Checkbox from '#shared/ui/Checkbox.vue'
 import StarIcon from '#shared/icons/StarIcon.vue'
 import CustomDatepicker from '#shared/ui/CustomDatepicker.vue'
 const searchStore = useReviewsSearchingStore()
-const {exercises, substring, authorName, authorAge,stars, date } = storeToRefs(searchStore);
-const ageInput = ref()
+const {exercises, substring, authorName, minAuthorAge,maxAuthorAge, stars, date, minDate } = storeToRefs(searchStore);
+const minAgeInput = ref()
+const maxAgeInput = ref()
 const applyFilters = async() => {
   try{
-    const ageIsValid= ageInput.value?.validate()
-    if(ageIsValid){
+    const minAgeIsValid= minAgeInput.value?.validate()
+    const maxAgeIsValid = maxAgeInput.value?.validate()
+    if(minAgeIsValid && maxAgeIsValid){
       await searchStore.applyFilters();
     }
   }
@@ -23,6 +25,12 @@ const applyFilters = async() => {
     console.log('error', err);
   }
 }
+const maxDate = computed(()=> {
+  return new Date()
+})
+onMounted(async()=> {
+  await searchStore.getStartDate();
+})
 onBeforeMount(()=> {
   searchStore.$reset()
 })
@@ -34,7 +42,6 @@ onBeforeMount(()=> {
     <div class="search_bar">
       <BasicInput type="text" v-model="substring" placeholder="Текст отзыва" class="text_input"/>
       <BasicInput type="text" v-model="authorName" placeholder="Имя автора" class="text_input"/>
-      <BasicInput ref="ageInput" type="text" v-model="authorAge" placeholder="Возраст автора" class="text_input" :rules="[(val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',(val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
       <div class="stars-date-wrapper">
         <div class="stars-wrapper">
           <div class="title">Оценка</div>
@@ -51,20 +58,27 @@ onBeforeMount(()=> {
           </div>
         </div>
         <div class="date-button-wrapper">
-          <CustomDatepicker :model-value="date" class="date" label="Даты публикации" @update:model-value="(newValue) => date = newValue"/>
-          <BasicButton class="search_btn" @click="applyFilters">
-            <template #after>
+          <CustomDatepicker :model-value="date" class="date" label="Даты публикации" @update:model-value="(newValue) => date = newValue" range :min-date="minDate" :maxDate="maxDate"/>
+          <div class="age-block">
+            <span class="age-title">Возраст автора</span>
+            <div class="age-inputs">
+              <BasicInput ref="minAgeInput" type="text" v-model="minAuthorAge" placeholder="От" class="text_input" :rules="[
+                (val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',
+                (val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет',
+                (val: string | number) => !val || (!isNaN(parseInt(`${val}`)) && parseInt(`${val}`) >= 16 && (!isNaN(parseInt(`${maxAuthorAge}`)) && parseInt(`${maxAuthorAge}`) >= 16 && +maxAuthorAge > +val)) || (parseInt(`${maxAuthorAge}`) < 16 || !maxAuthorAge || 'Минимальный возраст должен быть меньше максимального')]"/>
+              <BasicInput ref="maxAgeInput" type="text" v-model="maxAuthorAge" placeholder="До" class="text_input" :rules="[(val: string | number)=>(!val || !isNaN(parseInt(`${val}`)) ) || 'Введите число',(val: string | number)=> !val || (!isNaN(parseInt(`${val}`)) && (parseInt(`${val}`)>=16)) || 'Добавление отзыва разрешено только лицам старше 16 лет' ]"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <BasicButton class="search_btn" @click="applyFilters">
+        <template #after>
           <span class="after">
             <span class="after-text">Найти</span>
             <SearchIcon/>
           </span>
-            </template>
-          </BasicButton>
-        </div>
-
-      </div>
-
-
+        </template>
+      </BasicButton>
     </div>
     <div v-if="exercises.length > 0" class="result_block">
       <h3>Найдено по Вашему запросу</h3>
@@ -76,7 +90,7 @@ onBeforeMount(()=> {
           </NuxtLink>
         </div>
         <div class="review_content">
-          <ReviewCard v-for="el in item.reviews" :name="el.name" :stars="el.rating" :age="el.age" :date="el.date" :comment="el.comment"/>
+          <ReviewCard v-for="el in item.reviews" :name="el.name" :key="el._id" :stars="el.rating" :age="el.age" :date="el.date" :comment="el.comment"/>
         </div>
       </div>
     </div>
@@ -159,6 +173,7 @@ onBeforeMount(()=> {
   }
 }
 .stars-wrapper{
+  height: fit-content;
   color: #6e5a73;
   width: fit-content;
   border: 2px solid $brand;
@@ -201,5 +216,18 @@ onBeforeMount(()=> {
   display: flex;
   flex-direction: column;
   row-gap: 12px;
+  .age-block{
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5rem;
+    color: $brand;
+    .age-title{
+    }
+    .age-inputs{
+      display: flex;
+      gap: 0.5rem;
+      justify-content: space-between;
+    }
+  }
 }
 </style>
