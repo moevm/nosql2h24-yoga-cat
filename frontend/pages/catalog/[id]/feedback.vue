@@ -49,7 +49,7 @@ const sendReview = async () => {
           },
           body: JSON.stringify({
             name: data.name,
-            age: data.age,
+            age: Number(data.age),
             rating: data.stars,
             comment: data.sensations,
           }),

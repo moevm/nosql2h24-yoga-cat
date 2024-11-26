@@ -28,8 +28,8 @@ export type FilterParams = {
 
 export type FilterReviews = {
   substring: string;
-  age: number;
+  age: any;
   name: string;
-  date: string;
+  date: any;
   stars?: Stars[];
 }

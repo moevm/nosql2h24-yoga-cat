@@ -3,7 +3,7 @@ import StarIcon from "~/shared/icons/StarIcon.vue";
 export type CardInfo = {
   name: string,
   stars: number,
-  age: string,
+  age: number,
   date: string,
   comment: string
 }

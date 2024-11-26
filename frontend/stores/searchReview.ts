@@ -7,11 +7,13 @@ export type resultExercise = {
 };
 
 type searchReviewState = {
+    minDate: Date | null;
     isLoading: boolean;
     exercises: resultExercise[];
     substring: string;
     authorName: string;
-    authorAge: string;
+    minAuthorAge: string;
+    maxAuthorAge: string;
     date: Date | null;
     stars: {key: Stars, value: boolean}[];
 }
@@ -19,11 +21,13 @@ type searchReviewState = {
 export const useReviewsSearchingStore = defineStore({
     id: 'reviewsSearchingStore',
     state: (): searchReviewState => ({
+        minDate: null,
         isLoading: false,
         exercises: [],
         substring: '',
         authorName: '',
-        authorAge: '',
+        minAuthorAge: '',
+        maxAuthorAge: '',
         date: null,
         stars: [
             { key: 5, value: false },
@@ -48,6 +52,19 @@ export const useReviewsSearchingStore = defineStore({
                 console.error('Error:', error);
             }
         },
+        async getStartDate(){
+            try {
+                const url = `http://localhost:8080/firstdate`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error status: ${response.status}`);
+                }
+                const responseData = await response.json()
+                this.minDate = new Date(responseData.firstDate);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        },
         getQueryString() {
             const searchParams = new URLSearchParams();
             if(this.substring.length > 0){
@@ -56,11 +73,22 @@ export const useReviewsSearchingStore = defineStore({
             if(this.authorName.length > 0){
                 searchParams.append('name', `${this.authorName}`);
             }
-            if(this.authorAge.length > 0){
-                searchParams.append('age', `${parseInt(this.authorAge)}`);
+            if(this.minAuthorAge.length > 0 || this.maxAuthorAge.length > 0){
+                const ageObject: any = {}
+                if(this.minAuthorAge.length > 0){
+                    ageObject['min'] = Number(this.minAuthorAge);
+                }
+                if(this.maxAuthorAge.length > 0){
+                    ageObject['max'] = Number(this.maxAuthorAge);
+                }
+                searchParams.append('age', JSON.stringify(ageObject));
             }
-            if(this.date){
-                searchParams.append('date', `${new Date(this.date)}`);
+            if(this.date && Array.isArray(this.date) && this.date.length===2){
+                const dateObject: any = {}
+                dateObject['min'] = this.date[0]
+                dateObject['max'] = this.date[1]
+                console.log(dateObject)
+                searchParams.append('date', JSON.stringify(dateObject));
             }
             for (const star of this.stars) {
                 if (star.value) {
