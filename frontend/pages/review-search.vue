@@ -28,6 +28,12 @@ const applyFilters = async() => {
 const maxDate = computed(()=> {
   return new Date()
 })
+const allReviewsCount = computed(() => {
+    return exercises.value.reduce((acc: number, current: any) => {
+      return acc + current.reviews.length
+    }, 0)
+})
+
 onMounted(async()=> {
   await searchStore.getStartDate();
 })
@@ -81,7 +87,7 @@ onBeforeMount(()=> {
       </BasicButton>
     </div>
     <div v-if="exercises.length > 0" class="result_block">
-      <h3>Найдено по Вашему запросу</h3>
+      <h3>Найдено по Вашему запросу: {{allReviewsCount}}</h3>
       <div v-for="item in exercises" class="exercise_res" :key="item.id">
         <div class="header">
           <div class="title">На асану: {{item.title}}</div>
@@ -221,8 +227,6 @@ onBeforeMount(()=> {
     flex-direction: column;
     row-gap: 0.5rem;
     color: $brand;
-    .age-title{
-    }
     .age-inputs{
       display: flex;
       gap: 0.5rem;
