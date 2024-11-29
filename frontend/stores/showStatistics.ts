@@ -12,6 +12,7 @@ type showStatisticsState = {
     periphery: any[];
     positionInSpace: any[];
     spine: any[];
+    counter: number;
 }
 
 export const useStatisticsStore = defineStore({
@@ -27,6 +28,7 @@ export const useStatisticsStore = defineStore({
         positionInSpace: [],
         spine: [],
         cur_type: 'BASIC',
+        counter: -1
     }),
     actions: {
         async getStatistics() {
@@ -63,6 +65,7 @@ export const useStatisticsStore = defineStore({
                 }
                 else if(this.type=='ASANAS_COUNT' || this.type=='REVIEWS_COUNT'){
                     this.data = responseData.counts;
+                    this.counter = this.data.reduce((partialSum, a) => partialSum + a, 0);
                     this.labels = responseData.dates;
                 }
                 else if(this.type=='PERCENT'){

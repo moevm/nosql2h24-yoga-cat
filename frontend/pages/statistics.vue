@@ -12,7 +12,7 @@ import { Chart as ChartJS, Tooltip, BarElement, CategoryScale, LinearScale } fro
 import { Bar } from 'vue-chartjs'
 
 const statisticsStore = useStatisticsStore();
-const {type, date, exercise_id, data, labels, cur_type, loadAccent, periphery, positionInSpace, spine} = storeToRefs(statisticsStore);
+const {type, date, exercise_id, data, labels, cur_type, loadAccent, periphery, positionInSpace, spine, counter} = storeToRefs(statisticsStore);
 const selectOptions = ref<{id: string, value: string}[]>([]);
 const form_data = reactive({
   asanaTitle: '',
@@ -26,8 +26,8 @@ const startDate = ref('');
 const statistic_prop = {
   'DYNAMIC': {xTitle: 'Дата', yTitle: 'Оценка', label: 'Средняя оценка по отзывам'},
   'STARS': {xTitle: 'Оценка', yTitle: 'Количество', label: 'Количество асан'},
-  'ASANAS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество добавленных асан'},
-  'REVIEWS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество написанных отзывов'},
+  'ASANAS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество добавленных асан', count_label: 'Общее число асан за заданный период'},
+  'REVIEWS_COUNT': {xTitle: 'Дата', yTitle: 'Количество', label: 'Количество написанных отзывов', count_label: 'Общее число отзывов за заданный период'},
 };
 
 const types_prop = {
@@ -167,6 +167,9 @@ onBeforeMount(()=> {
     <h1>Статистика</h1>
     <div class="date-block">
       <span class="block_title">Выберите временной промежуток для построения статистики</span>
+      <span class="date_notofication">
+            {{ 'Возможный промежуток дат ограничен датой создания первого упражнения и сегодняшним днём!' }}
+      </span>
       <CustomDatepicker :model-value="date" :range="true" :min-date="new Date(startDate)" :max-date="new Date()" class="date" label="Промежуток дат" @update:model-value="(newValue) => date = newValue"/>
       <transition name="error">
         <div v-if="dateError && (!date || date.some((el)=> !el)) && type!='STARS' && type!='PERCENT' && type!='BASIC'" class="error-message">
@@ -213,7 +216,12 @@ onBeforeMount(()=> {
       </div>
     </div>
     <BasicButton class="btn" @click="applyFilters">ПОСТРОИТЬ</BasicButton>
-    <Bar v-if="cur_type!='BASIC' && cur_type!='PERCENT'" style="max-width: 90%; max-height: 30rem" :data="chart_data(statistic_prop[cur_type].label, labels, data)" :options="options(statistic_prop[cur_type].xTitle, statistic_prop[cur_type].yTitle)" />
+    <div v-if="cur_type!='BASIC' && cur_type!='PERCENT'" class="solo_hist_block">
+      <div v-if="cur_type=='ASANAS_COUNT' || cur_type=='REVIEWS_COUNT'" class="hist_title">
+        {{ statistic_prop[cur_type].count_label }}: {{ counter }}
+      </div>
+      <Bar style="max-width: 90%; max-height: 30rem" :data="chart_data(statistic_prop[cur_type].label, labels, data)" :options="options(statistic_prop[cur_type].xTitle, statistic_prop[cur_type].yTitle)" />
+    </div>
     <div class="stat_block" v-if="cur_type=='PERCENT'">
       <div class="hist_block">
         <div class="hist_title">Акценты нагрузки</div>
@@ -297,7 +305,24 @@ onBeforeMount(()=> {
     display: inline-block;
     font-weight: 400;
     font-size: 1.8rem;
-    margin-bottom: 1rem;
+  }
+  .date_notofication {
+    color: $brand;
+    padding: 0.8rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    display: inline-block;
+    font-weight: 400;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  .solo_hist_block {
+    width: 100%;
+    padding: 1rem 5rem 1rem 5rem;
+    display: flex;
+    flex-direction: column;
   }
   .stat_block {
     width: 100%;
@@ -311,19 +336,19 @@ onBeforeMount(()=> {
       flex-direction: column;
       align-items: center;
       width: 100%;
-      .hist_title{
-        color: $brand;
-        padding: 0.8rem;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        max-width: 100%;
-        display: inline-block;
-        font-weight: 400;
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-      }
     }
+  }
+  .hist_title{
+    color: $brand;
+    padding: 0.8rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    display: inline-block;
+    font-weight: 400;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
   }
 }
 .error-message {
